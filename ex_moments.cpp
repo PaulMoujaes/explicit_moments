@@ -32,8 +32,8 @@ int main(int argc, char *argv[])
     const char *OutputDirectory = "output/not_important";
 
     double dt = 0.001;
-    double CFL = 0.5;
-    double tFinal = 1.0;
+    double CFL = -std::numeric_limits<double>::infinity();;
+    double t_final = 1.0;
     int ode_solver_type = 1; // explicit Euler
 
     int visualizationSteps = 1;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     args.AddOption(&MeshFile, "-m", "--mesh", "Mesh file to use.");
     args.AddOption(&OutputDirectory, "-out", "--output-directory", "Output directory.");
     args.AddOption(&dt, "-dt", "--time-step", "Time step size.");
-    args.AddOption(&tFinal, "-ft", "--final-time", "Final Time.");
+    args.AddOption(&t_final, "-ft", "--final-time", "Final Time.");
     args.AddOption(&CFL, "-cfl", "--cfl", "CFL number.");
     args.AddOption(&vtk_name, "-vn", "--vtk-name", "Give the vtk files a name.");
     args.AddOption(&visualizationSteps, "-vis", "--visualization-steps", "Visualize every n-th time step");
@@ -76,6 +76,7 @@ int main(int argc, char *argv[])
         args.PrintOptions(cout);
     }
 
+    bool addaptive_ts = CFL > 0.0;
     paraview = !vtk_name.std::string::empty() && paraviewSteps != 0;
 
     auto lastSlash = std::string(MeshFile).find_last_of("/");
@@ -282,40 +283,49 @@ int main(int argc, char *argv[])
             cout << "Initial condition saved as " << para_loc << "\n\n";
         }  
     } 
-
-    auto start = high_resolution_clock::now();
-    double t = 0.0;
     if(Mpi::Root())
     {
         cout << "Preprocessing done. Entering time stepping loop!\n";
     }
+
+    double t = 0.0;
+    odesolver->Init(*met);
+    met->SetTime(t);
+    bool done = false;
+
     
     tic_toc.Clear();
     tic_toc.Start();
+    auto start = high_resolution_clock::now();
 
-    bool done = false;
 
     // 11. Perform time integration.
     for (int ti = 0; !done;)
     {
-        ti++;         
-        dt = met->Compute_dt(u, CFL);
-        odesolver->Step(u, t, dt);
+        ti++;
+        if(addaptive_ts)
+        {
+            dt = met->Compute_dt(u, CFL);
+        }
+        double dt_real = min(dt, t_final - t);
+        odesolver->Step(u, t, dt_real);
+
+        done = (t >= t_final - 1e-8*dt);
          
         if ((done || ti % visualizationSteps == 0) && Mpi::Root())
         {               
             // visualize on console
             auto stop = high_resolution_clock::now();
             auto msecs = duration_cast<milliseconds>(stop - start);
-            double remaindermsecs = msecs.count();
-            int remaindersecs = std::round(remaindermsecs / 1E+3);
-            int mins = remaindersecs / 60;
-            int secs = remaindersecs % 60;
+            double remainder_msecs = msecs.count() * (t_final - t) / (visualizationSteps * dt);
+            int remainder_secs = std::round(remainder_msecs / 1.0E+3);
+            int mins = remainder_secs / 60;
+            int secs = remainder_secs % 60;
             int hrs = mins / 60;
             mins = mins % 60;
 
-           
-            cout << "Time step: " << ti << ", Time: " << t << ", main in [" << main.Min() << ", "<< main.Max() << endl;
+
+            cout << "Time step: " << ti << ", Time: " << t << ", main in [" << main.Min() << ", "<< main.Max() << "], Remaining: " << hrs << "hrs " << mins << "mins " << secs << "secs." << '\n';
 
             start = high_resolution_clock::now();
         }

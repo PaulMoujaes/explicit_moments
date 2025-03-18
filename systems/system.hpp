@@ -6,7 +6,6 @@
 struct SystemConfiguration
 {
    int benchmark;
-   double collision_coeff;
 };
 
 class System
@@ -37,15 +36,15 @@ class System
         virtual void Adjust(Vector &u) const = 0;
         virtual double ComputePressureLikeVariable(Vector &u) const = 0;
 
-
         const int numVar, dim;
         ParFiniteElementSpace *vfes;
         ParGridFunction u0;
         bool solutionKnown;
 
+        mutable FunctionCoefficient *Sigma_0, *Sigma_1;
         mutable VectorFunctionCoefficient bdrCond;
         mutable DenseMatrix flux1, flux2;
-        mutable DenseTensor fluxJac1, fluxJac2;
+        //mutable DenseTensor fluxJac1, fluxJac2;
         mutable Vector ui;
         const char* problemName;
         double collision_coeff = 0.0;

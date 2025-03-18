@@ -6,12 +6,20 @@ System::System(ParFiniteElementSpace *vfes_, BlockVector &ublock, int numVar_, S
 
    flux1.SetSize(numVar, dim);
    flux2.SetSize(numVar, dim);
-   fluxJac1.SetSize(numVar, numVar, dim);
-   fluxJac2.SetSize(numVar, numVar, dim);
 }
 
 System::~System()
-{ }
+{ 
+   if(Sigma_0)
+   {
+      delete Sigma_0;
+   }
+
+   if(Sigma_1)
+   {
+      delete Sigma_1;
+   }
+}
 
 void System::WriteErrors(const Array<double> &errors) const
 {

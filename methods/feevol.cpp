@@ -6,7 +6,7 @@ void zero_numVar(const Vector &x, Vector &zero)
 }
 
 FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_):
-    TimeDependentOperator(vfes->GetVSize()),
+    TimeDependentOperator(vfes_->GetVSize()),
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), numVar(sys_->numVar), lumpedMassMatrix(lumpedMassMatrix_), pmesh(fes_->GetParMesh()),
     nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm())
 {
@@ -14,7 +14,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     if (strncmp(fecol, "H1", 2))
     {
         MFEM_ABORT("FiniteElementSpace must be H1 conforming (CG).");
-    }   
+    }
 
     // Just to make sure
     MFEM_ASSERT(nDofs == lumpedMassMatrix.Size(), "nDofs x VDim might be wrong!");
@@ -114,6 +114,10 @@ void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
             }
         }
 
+        for(int n = 0; n < numVar; n++)
+        {
+            y(i + n * nDofs) /= lumpedMassMatrix(i);
+        }
         /*
         for(int d = 0; d < dim; d++)
         {

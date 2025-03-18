@@ -1,0 +1,21 @@
+0.611202 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.1 -r 2 -fe 0 -ode 1 -vn reaction_IDP 
+0.266552 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+0.264191 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+0.263107 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+0.261911 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+2.66687 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP -ps 1 
+2.60444 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+2.90222 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+2.9508 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+0.00125233 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0 -vn reaction_IDP 
+0.00125983 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0 -vn reaction_IDP 
+0.00179839 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0 -vn reaction_IDP 
+0.00113804 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0 -vn reaction_IDP 
+2.69861 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.01 -r 2 -fe 0 -ode 1 -ft 0.45 -vn reaction_IDP 
+0.264871 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO 
+0.442677 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 1 -cfl 0.1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO -ps 20 
+16.4435 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.9 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO -ps 10 
+16.0575 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.9 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO -ps 10 
+10.7256 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.9 -r 5 -fe 0 -ode 1 -ft 0.3 -vn LO -ps 10 
+10.6663 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.9 -r 5 -fe 0 -ode 1 -ft 0.3 -vn LO -ps 10 
+1010.44 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/LB-Inflow-TR-Outflow.mesh -o 1 -vis 10 -cfl 0.9 -r 7 -fe 0 -ode 1 -ft 0.45 -vn LO -ps 10 

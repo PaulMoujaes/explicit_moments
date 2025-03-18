@@ -5,6 +5,10 @@ SystemConfiguration configM1;
 void AnalyticalSolutionM1(const Vector &x, Vector &u);
 void InitialConditionM1(const Vector &x, Vector &u);
 void InflowFunctionM1(const Vector &x, Vector &u);
+
+double sigma_a(const Vector &x);
+double sigma_aps(const Vector &x);
+
 bool Admissible_outside(Vector &u);
 bool solutionKnown_glob;
 
@@ -14,68 +18,15 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
     configM1 = config_;
     VectorFunctionCoefficient ic(numVar, InitialConditionM1);
 
-    /*
-    ui(0) = 0.5;
-    ui(1) = 0.1;
-    ui(2) = 0.1;
-
-    cout << Evaluate_f(ui) << endl;
-    cout << EvaluateEddingtonFactor(ui) << endl;
-    Vector v(dim);
-    Evaluate_f_vec(ui, v);
-    v.Print();
-    cout << v.Norml2()<<  "\n\n";
-
-    EvaluatePsi2(ui, psi2);
-    psi2.Print();
-    cout << endl;
-
-    MFEM_VERIFY(Admissible(ui), "u not admissible!")
-
-
-    EvaluateFluxJacobian(ui, fluxJac1);
-    cout << fluxJac1(0).Det() << ", "<< fluxJac1(1).Det()<< endl;
-    EvaluateFlux(ui, flux1);
-
-    Vector uj = ui;
-    fluxJac1(0).Mult(ui, uj);
-    flux2.SetCol(0, uj);
-    fluxJac1(1).Mult(ui, uj);
-    flux2.SetCol(1,uj);
-
-    flux1.Print();
-    cout << endl;
-    flux2.Print();
-
-    MFEM_ABORT("")
-    //*/
-
+    Sigma_0 = new FunctionCoefficient(sigma_a);
+    Sigma_1 = new FunctionCoefficient(sigma_aps);
 
     switch (configM1.benchmark)
     {   
         case 0:
         {
-            problemName = "M1-Smooth-Beam-from-left";
+            problemName = "M1-Particle-Pulse";
             solutionKnown = false;
-            collision_coeff = 0.1;
-            u0.ProjectCoefficient(ic);
-            break;
-        }
-
-        case 1:
-        {
-            problemName = "M1-Smooth-Beam-from-left-and-bottom";
-            solutionKnown = false;
-            collision_coeff = 0.1;
-            u0.ProjectCoefficient(ic);
-            break;
-        }
-
-        case 2:
-        {
-            problemName = "M1-Disc-Beam-from-left-and-bottom";
-            solutionKnown = false;
-            collision_coeff = 0.1;
             u0.ProjectCoefficient(ic);
             break;
         }
@@ -354,8 +305,6 @@ void AnalyticalSolutionM1(const Vector &x, Vector &u)
     switch (configM1.benchmark)
     {
         case 0:
-        case 1:
-        case 2:
         {
             MFEM_ABORT("tbd")
             break;
@@ -363,40 +312,29 @@ void AnalyticalSolutionM1(const Vector &x, Vector &u)
         default:
             MFEM_ABORT("Analytical solution not known.");
     }
-
-    MFEM_VERIFY(Admissible_outside(u), "Analytical solution not IDP");
 }
 
 
 
 void InitialConditionM1(const Vector &x, Vector &u)
 {
-    if(solutionKnown_glob) 
+    switch (configM1.benchmark)
     {
-        AnalyticalSolutionM1(x, u);
-    }
-    else
-    {
-        switch (configM1.benchmark)
+        case 0: 
         {
-            case 0: 
-            case 1:
-            case 2:
-            {
-                u = 0.0;
-                //u = 0.01;
-                u(0) = 0.1;
-                
-                //InflowFunctionM1(x,u);
-                break;
-            }
-
-            default: 
-            MFEM_ABORT("No initial condition for this benchmark implemented!");
+            u = 0.0;
+            double omega_sq = 0.02;
+            omega_sq *= omega_sq;
+            Vector X = x;
+            X -= 0.5;
+            double ex = exp(-10.0 * (X(0) * X(0) + X(1) * X(1)) / omega_sq );
+            u(0) = max(1e-4, ex);
+            break;
         }
-    }
 
-    MFEM_VERIFY(Admissible_outside(u), "Initial condition not IDP");
+        default: 
+        MFEM_ABORT("No initial condition for this benchmark implemented!");        
+    }
 }
 
 void InflowFunctionM1(const Vector &x, Vector &u)
@@ -406,74 +344,13 @@ void InflowFunctionM1(const Vector &x, Vector &u)
     {
         case 0:
         { 
-            u = 0.0;
-            u(0) = 0.1;
-            
-            double ymax = 0.55;
-            double ymin = 0.45;
-            double middle = 0.5 * (ymax + ymin);
-            double alpha = 0.0; //- 0.2 * M_PI;
-
-            if((x(1) <= ymax && x(1) >= ymin))
-            {
-                u(0) = 0.9 * cos(10.0 * M_PI * (x(1) - middle ) / 3.0) * cos(10.0 * M_PI * (x(1) - middle ) / 3.0) + 0.1;
-                u(1) = cos(alpha) * f * u(0);
-                u(2) = sin(alpha) * f * u(0);
-            }
-
-            break; 
-        }
-        case 1:
-        { 
-            u = 0.0;
-            u(0) = 0.1;
-            
-            double xmax = 0.4;
-            double xmin = 0.3;
-            double middle = 0.5 * (xmax + xmin);
-            if((x(1) <= xmax && x(1) >= xmin))
-            {
-                u(0) = 0.5 * cos(10.0 * M_PI * (x(1) - middle ) / 3.0) * cos(10.0 * M_PI * (x(1) - middle ) / 3.0) + 0.1 ;
-                u(1) =  f * u(0);
-                //u(2) =  0.0;
-            }
-            else if((x(0) <= xmax && x(0) >= xmin))
-            {
-                double u_0 = 0.5 * cos(10.0 * M_PI * (x(0) - middle ) / 3.0) * cos(10.0 * M_PI * (x(0) - middle ) / 3.0) + 0.1;
-                u(0) = u_0; // max(u(0), u_0 );
-
-                //u(1) =  max(0.0,  u(1));
-                u(2) =  f * u(0);
-            }
-            break; 
-        }
-        case 2:
-        { 
-            u = 0.0;
-            u(0) = 0.1;
-            
-            double xmax = 0.1;
-            double xmin = 0.05;
-            double middle = 0.5 * (xmax + xmin);
-            if((x(1) <= xmax && x(1) >= xmin))
-            {
-                u(0) = 0.6;
-                u(1) =  f * u(0);
-                //u(2) =  0.0;
-            }
-            else if((x(0) <= xmax && x(0) >= xmin))
-            {
-                u(0) = 0.6; 
-                u(2) =  f * u(0);
-            }
-            break; 
+            InitialConditionM1(x,u);  
+            break;      
         }
 
         default:
         MFEM_ABORT("No Inflow for this benchmark implemented!");
     }
-
-    MFEM_VERIFY(Admissible_outside(u), "Inflow not IDP");
 }
 
 bool Admissible_outside(Vector &u)
@@ -545,6 +422,39 @@ void M1::ComputeErrors(Array<double> & errors, const ParGridFunction &u, double 
 
    //*/
    errors[1] = sqrt(errors[1]);
+}
+
+
+
+double sigma_a(const Vector &x)
+{ 
+    switch (configM1.benchmark)
+    {
+        case 0: 
+        {
+            return 0.0;
+        }
+
+        default: 
+        MFEM_ABORT("No sigma_a for this benchmark!");
+    }
+    return 0.0;
+}
+
+double sigma_aps(const Vector &x)
+{
+    double sigma_s = 0.0;
+    switch (configM1.benchmark)
+    {
+        case 0: 
+        {
+            sigma_s = 0.0; break;
+        }
+
+        default: 
+        MFEM_ABORT("No sigma_aps for this benchmark!");
+    }
+    return sigma_s + sigma_a(x);
 }
 
 
