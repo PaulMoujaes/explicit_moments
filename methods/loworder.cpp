@@ -1,39 +1,8 @@
 #include "loworder.hpp"
 
 LowOrder::LowOrder(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_) : 
-        FEM(fes_, vfes_, sys_, dofs_, lumpedMassMatrix_)
-        { }
-
-void LowOrder::AssembleSystem(const Vector &Mx_n, const Vector &x, SparseMatrix &S, Vector &b, const double dt) const
-{   
-    MFEM_ASSERT(S.Finalized(), "Matrix not finalized");
-    S = 0.0;
-    mD = S;
-    b = Mx_n;
-
-    Assemble_A(x, S);
-    Assemble_minusD(x, mD);
-    S += mD;
-    
-    Impbc(x, S, dbc);
-    //Expbc(x, dbc);
-    b.Add(dt, dbc);
-
-    S *= dt;
-    S += ML;
-
-    //*
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int d = 0; d < dim; d++)
-        {
-            S(i + (d+1) * nDofs, i + (d+1) * nDofs) += sys->collision_coeff * dt * lumpedMassMatrix(i);
-        }
-    }
-
-    //S.Print();
-    //*/
-}
+        FE_Evolution(fes_, vfes_, sys_, dofs_, lumpedMassMatrix_)
+{ }
 
 /*
 void LowOrder::CalcResidual(const Vector &Mx_n, const Vector &x, const double dt, Vector &res) const
@@ -89,6 +58,11 @@ void LowOrder::CalcResidual(const Vector &Mx_n, const Vector &x, const double dt
 }
 //*/
 
+void LowOrder::Mult(const Vector &x, Vector &y) const
+{
+    ComputeLOTimeDerivatives(x, y);
+}
+
 
 
 void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const 
@@ -138,10 +112,12 @@ void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &r
             }
         }
 
+        /*
         for(int d = 0; d < dim; d++)
         {
             res(i + (d+1) * nDofs) -= sys->collision_coeff * lumpedMassMatrix(i) * ui(d+1);
-        }    
+        }
+        //*/ 
     }
 
     for(int i = 0; i < nDofs; i++)

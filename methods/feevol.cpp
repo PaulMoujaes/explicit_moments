@@ -5,11 +5,10 @@ void zero_numVar(const Vector &x, Vector &zero)
     zero = 0.0;
 }
 
-FEM::FEM(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_):
+FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_):
+    TimeDependentOperator(vfes->GetVSize()),
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), numVar(sys_->numVar), lumpedMassMatrix(lumpedMassMatrix_), pmesh(fes_->GetParMesh()),
-    nDofs(fes_->GetNDofs()), dofs(dofs_), targetScheme(true), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), 
-    T(numVar * nDofs, numVar * nDofs)
-    //shared(nDofs, nDofs) // size is only temporary, shared will be overwritten by its diagoffdiagmerged
+    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm())
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -42,17 +41,6 @@ FEM::FEM(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
     aux2.SetSize(numVar * nDofs);
     aux2.UseDevice(true);
 
-    Block_ij.SetSize(numVar, numVar);
-    Identity_numVar.SetSize(numVar, numVar);
-    Identity_numVar = 0.0;
-    for(int n = 0; n < numVar; n++)
-    {
-        Identity_numVar(n,n) = 1.0;
-    }
-
-    fluxJac_i.SetSize(numVar,numVar,dim);
-    fluxJac_j.SetSize(numVar,numVar,dim);
-
     fluxEval_i.SetSize(numVar, dim);
     fluxEval_j.SetSize(numVar, dim);
 
@@ -69,22 +57,6 @@ FEM::FEM(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
     Con.Finalize(0);
     Convection = Con.SpMat();
 
-
-    SparseMatrix ML_numVar(nDofs * numVar, nDofs * numVar);
-    SparseMatrix ML_inv_numVar(nDofs * numVar, nDofs * numVar);;
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int n = 0; n < numVar; n++)
-        {
-            ML_numVar.Set(i + n * nDofs, i + n * nDofs, lumpedMassMatrix(i));
-            ML_inv_numVar.Set(i + n * nDofs, i + n * nDofs, 1.0 / lumpedMassMatrix(i));
-        }
-    }
-    ML_numVar.Finalize(0);
-    ML_inv_numVar.Finalize(0);
-    ML_inv = ML_inv_numVar;
-    ML = ML_numVar;
-
     inflow.ProjectCoefficient(sys->bdrCond);
 
     auto tr = pmesh->GetBdrFaceTransformations(0);
@@ -93,79 +65,14 @@ FEM::FEM(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
     {
         intorder++;
     }
-
-    auto I = dofs.I;
-    auto J = dofs.J;
-    
-    for(int i = 0; i < nDofs; i++)
-    {   
-        for(int k = I[i]; k < I[i+1]; k++)
-        {
-            int j = J[k];
-            for(int n = 0; n < numVar; n++)
-            {
-                for(int m = 0; m < numVar; m++)
-                {
-                    T.Set(i + n * nDofs, j + m * nDofs, 1.0);
-                }
-            }
-        }
-    }
-    T.Finalize();
-    T = 0.0;
 }
 
-
-void FEM::Assemble_A(const Vector &x, SparseMatrix &A) const
-{   
-    MFEM_ASSERT(x.Size() == numVar * nDofs, "wrong dimensions!");
-    MFEM_ASSERT(A.Size() == x.Size(), "wrong Matrix dimensions!");
-    A = 0.0;
-
-    auto I = dofs.I;
-    auto J = dofs.J;
-
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int k = I[i]; k < I[i+1]; k++)
-        {   
-            int j = J[k];
-
-            for(int n = 0; n < numVar; n++)
-            {
-                uj(n) = x(j + n * nDofs);
-            }
-            sys->EvaluateFluxJacobian(uj, fluxJac_j);
-
-            Block_ij = 0.0;
-            for(int d = 0; d < dim; d++)
-            {   
-                cij(d) = Convection(i, j + d * nDofs);
-                Block_ij.Add(cij(d), fluxJac_j(d)); 
-            }
-
-            for(int n = 0; n < numVar; n++)
-            {
-                for(int m = 0; m < numVar; m++)
-                {
-                    // put into the global matrix orderring by nodes
-                    A(i + n * nDofs, j + m * nDofs) += Block_ij(n, m);
-                }
-            }
-        }
-    }
-}
-
-
-void FEM::Assemble_minusD(const Vector &x, SparseMatrix &D) const
+void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 {
-    MFEM_ASSERT(x.Size() == numVar * nDofs, "wrong dimensions!");
-    MFEM_ASSERT(D.Size() == x.Size(), "wrong Matrix dimensions!");
+    Expbc(x, y);
 
-    D = 0.0;
     auto I = dofs.I;
     auto J = dofs.J;
-
     for(int i = 0; i < nDofs; i++)
     {
         for(int n = 0; n < numVar; n++)
@@ -173,10 +80,8 @@ void FEM::Assemble_minusD(const Vector &x, SparseMatrix &D) const
             ui(n) = x(i + n * nDofs);
         }
 
-        double dij_sum = 0.0;
-
         for(int k = I[i]; k < I[i+1]; k++)
-        {   
+        {
             int j = J[k];
 
             if(j == i)
@@ -184,39 +89,42 @@ void FEM::Assemble_minusD(const Vector &x, SparseMatrix &D) const
                 continue;
             }
 
-            for(int d = 0; d < dim; d++)
-            {   
-                // c_ij
-                cij(d) = Convection(i, j + d * nDofs);
-                cji(d) = Convection(j, i + d * nDofs);
-            }
-
             for(int n = 0; n < numVar; n++)
             {
                 uj(n) = x(j + n * nDofs);
             }
 
+            for(int d = 0; d < dim; d++)
+            {
+                cij(d) = Convection(i, j + d * nDofs);
+                cji(d) = Convection(j, i + d * nDofs);
+            }
+
             double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
-            dij_sum += dij;
+
+            sys->EvaluateFlux(ui, fluxEval_i);
+            sys->EvaluateFlux(uj, fluxEval_j);
+
+            fluxEval_j -= fluxEval_i;
+            fluxEval_j.Mult(cij, flux_j);
 
             for(int n = 0; n < numVar; n++)
             {
-                D(i + n * nDofs, j + n * nDofs) = - dij;
+                y(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
             }
         }
 
-        for(int n = 0; n < numVar; n++)
+        /*
+        for(int d = 0; d < dim; d++)
         {
-            D(i + n * nDofs, i + n * nDofs) = dij_sum;
+            res(i + (d+1) * nDofs) -= sys->collision_coeff * lumpedMassMatrix(i) * ui(d+1);
         }
+        //*/ 
     }
 }
 
-double FEM::Compute_dt(const Vector &x, const bool HO_lowCFL_init, const double CFL_init, const double CFL_HO) const
+double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
 {
-    double CFL = CFL_HO;
-    if(HO_lowCFL_init) { CFL = CFL_init;}
-
     double lambda_max = 0.0;
 
     auto I = dofs.I;
@@ -258,160 +166,7 @@ double FEM::Compute_dt(const Vector &x, const bool HO_lowCFL_init, const double 
     return CFL / lambda_max;
 }
 
-
-void FEM::Impbc(const Vector &x, SparseMatrix &bc, Vector &dbc) const
-{   
-    MFEM_ASSERT(dbc.Size() == numVar * nDofs, "wrong dimensions!");
-
-    dbc = 0.0;
-    FaceElementTransformations *tr;
-    Vector nor(dim);
-    
-    for(int b = 0; b < fes->GetNBE(); b++)
-    {   
-        tr = pmesh->GetBdrFaceTransformations(b);
-        MFEM_ASSERT(tr->Elem2No < 0, "no boundary element");
-
-        // if supersonic outlet then integral over boundary is zero so skip
-        if(tr->Attribute == 2)
-        {   
-            continue;
-        }
-
-        const IntegrationRule *ir = &IntRules.Get(tr->GetGeometryType(), intorder);
-
-        const int dof = fes->GetFE(tr->Elem1No)->GetDof();
-        Vector shape(dof);
-        Vector aux_vec(numVar);
-        aux_vec = 0.0;
-        DenseMatrix aux_mat(dof, numVar);
-
-        Array <int> vdofs;
-        Array <int> edofs;
-        vfes->GetElementVDofs(tr->Elem1No, vdofs);
-        fes->GetElementDofs(tr->Elem1No, edofs);
-
-        Vector u_n(vdofs.Size());
-        x.GetSubVector(vdofs, u_n);
-        Vector y1(numVar), y2(numVar), y_in_np1(vdofs.Size());
-        inflow.GetSubVector(vdofs, y_in_np1);
-
-        DenseMatrix B(numVar, numVar);
-        dofs.normals.GetRow(b, nor);
-        B = 0.0;
-        /*
-        if(tr->Attribute == 1 && numVar != 1)
-        {   
-            for(int d = 0; d < dim; d++)
-            {
-                for(int dd = 0; dd < dim; dd++)
-                {   
-                    B( d + 1, dd + 1) = nor(d) * nor(dd);
-                }
-            }
-            B *= -2.0;
-            B += Identity_numVar;
-        }
-        //*/
-
-        DenseTensor nAu_dof(numVar, numVar, dof);
-        nAu_dof = 0.0;
-
-        for(int i = 0; i < dof; i++)
-        {   
-            for(int n = 0; n < numVar; n++)
-            {
-                y1(n) = u_n(i + n * dof);
-                y2(n) = y_in_np1(i + n * dof);
-            }
-            
-            sys->SetBoundaryConditions(y1, y2, nor, tr->Attribute);
-            sys->EvaluateFluxJacobian(y1, fluxJac_i);
-            double lambda = sys->ComputeLambdaij(nor, y1, y2);
-            nAu_dof(i) = Identity_numVar;
-            nAu_dof(i) *= lambda;
-
-            switch (tr->Attribute)
-            {
-
-            case 1: // reflecting wall
-            {
-                sys->EvaluateFluxJacobian(y2, fluxJac_j);
-                nAu_dof(i).Add( - lambda, B);
-                break;
-            }
-            case 3: // Supersonic inlet.
-            case 4: // Subsonic outlet.
-            case 5: // Subsonic inlet.
-            case 6: // transsonic outlet
-            {
-                fluxJac_j = 0.0;
-                sys->EvaluateFlux(y2, fluxEval_j);
-                aux_vec = y2;
-                aux_vec *= lambda;
-                fluxEval_j.AddMult_a(-1.0, nor, aux_vec);
-                aux_mat.SetRow(i, aux_vec);
-                break;
-            }            
-            case 2: // supersonic outlet gets cought earlier
-            default:
-                MFEM_ABORT("Invalid boundary attribute.");
-            }
-            
-            DenseMatrix nA(numVar, numVar), nA_IpB(numVar, numVar);
-            nA = 0.0,
-            nA_IpB = 0.0;
-
-            for(int d = 0; d < dim; d++)
-            {
-                nAu_dof(i).Add( - nor(d), fluxJac_i(d));
-                nA.Add(nor(d), fluxJac_j(d));
-            }
-
-            for(int n = 0; n < numVar; n++)
-            {
-                for(int m = 0; m < numVar; m++)
-                {
-                    for(int l = 0; l < numVar; l++)
-                    {
-                        nA_IpB(n, m) += nA(n,l) * B(l,m); 
-                    }
-                }
-            }
-
-            nAu_dof(i) += nA_IpB;
-        }
-
-        for(int q = 0; q < ir->GetNPoints(); q++)
-        {
-            const IntegrationPoint &ip = ir->IntPoint(q);
-            tr->SetAllIntPoints(&ip);
-            shape = 0.0;
-            fes->GetFE(tr->Elem1No)->CalcShape(tr->GetElement1IntPoint(), shape);
-        
-            shape *= ip.weight * tr->Weight() * 0.5;
-
-            for(int i = 0; i < dof; i++)
-            {   
-                for(int n = 0; n < numVar; n++)
-                {
-                    for(int m = 0; m < numVar; m++)
-                    {
-                        // add to the global matrix orderring by nodes
-                        bc(edofs[i] + n * nDofs, edofs[i] + m * nDofs) += shape(i) * nAu_dof(n,m,i); 
-                    }
-
-                    // dirichlet bc
-                    dbc(edofs[i] + n * nDofs) += aux_mat(i,n) * shape(i); 
-                }
-            }
-        }
-    }
-}
-
-
-
-void FEM::Expbc(const Vector &x, Vector &bc) const
+void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
 {
     FaceElementTransformations *tr;
     Vector nor(dim);
@@ -484,7 +239,7 @@ void FEM::Expbc(const Vector &x, Vector &bc) const
     }
 }
 
-double FEM::ComputeSteadyStateResidual(const Vector &x, ParGridFunction &res_gf) const
+double FE_Evolution::ComputeSteadyStateResidual(const Vector &x, ParGridFunction &res_gf) const
 {
     ComputeSteadyStateResidual_gf(x, res_gf);
     VectorFunctionCoefficient zero(numVar, zero_numVar);
@@ -492,40 +247,14 @@ double FEM::ComputeSteadyStateResidual(const Vector &x, ParGridFunction &res_gf)
     return steadyStateResidual;
 }
 
-double FEM::ComputeEntropySteadyStateResidual(const Vector &u, ParGridFunction &res_gf) const
-{
-    ComputeSteadyStateResidual_gf(u, res_gf);
-    //ML_inv.Mult(res_gf, aux1);
-
-    res_gf = 0.0;
-
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int n = 0 ; n < numVar; n++)
-        {
-            ui(n) = u(i + n * nDofs);
-        }
-        sys->EntropyVariable(ui, uj);
-        
-        for(int n = 0 ; n < numVar; n++)
-        {
-            res_gf(i) += aux1(i + n * nDofs) * uj(n);
-        }
-    }
-    MFEM_ABORT("NEEDS SCALAR GRIDFUNCTION!");
-    VectorFunctionCoefficient zero(numVar, zero_numVar);
-    return res_gf.ComputeL2Error(zero);
-}
-
-
-double FEM::SteadyStateCheck(const Vector &u) const
+double FE_Evolution::SteadyStateCheck(const Vector &u) const
 {
    uOld = u;
    return steadyStateResidual;
 }
 
 
-void FEM::SyncVector(Vector &x) const
+void FE_Evolution::SyncVector(Vector &x) const
 {
     MFEM_VERIFY(x.Size() == nDofs, "wrong size");
     Array<double> sync(x.GetData(), nDofs);
@@ -534,7 +263,7 @@ void FEM::SyncVector(Vector &x) const
 }
 
 
-void FEM::VSyncVector(Vector &x) const
+void FE_Evolution::VSyncVector(Vector &x) const
 {
     MFEM_VERIFY(x.Size() == nDofs * numVar, "wrong size");
     Array<double> sync(x.GetData(), nDofs * numVar);

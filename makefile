@@ -28,7 +28,7 @@ OUT_DIR = output
 DIRS = $(PRO_DIR) $(MET_DIR) $(AUX_DIR) $(FP_DIR) #$(OP_DIR) $(INT_DIR)
 
 AUX_FILES = $(BUI_DIR)/dofs.o
-MET_FILES = $(BUI_DIR)/feevol.met $(BUI_DIR)/loworder.met $(BUI_DIR)/mcl.met
+MET_FILES = $(BUI_DIR)/feevol.met $(BUI_DIR)/loworder.met #$(BUI_DIR)/mcl.met
 PRO_FILES = $(BUI_DIR)/system.pro $(BUI_DIR)/m1.pro
 # List scalar problems.
 
@@ -56,7 +56,7 @@ VALGRIND-CONFIG = -tf 0.001 -dt 0.001 -p $(PROBLEM) -e 0
 
 # List keywords that are not associated with files (by default, all are).
 
-.PHONY: all library impcg clean valgrind-test grid-convergence-test style # pimpcg inzufügen hinter impcg
+.PHONY: all library ex_moments clean valgrind-test grid-convergence-test style # pimpcg inzufügen hinter impcg
 
 # Delete the default suffixes.
 
