@@ -29,7 +29,7 @@ class FE_Evolution : public TimeDependentOperator
         // Stuff for implicit fixed-point iteration
         //mutable SparseMatrix mD, T; // mD;
         //mutable DenseMatrix Block_ij, Identity_numVar;
-        mutable Vector dbc, adf, aux1, aux2;
+        mutable Vector dbc, aux1, aux2;
         mutable Vector ui, uj, vi, vj;
         //mutable DenseTensor fluxJac_i, fluxJac_j;
         mutable DenseMatrix fluxEval_i, fluxEval_j;
@@ -41,7 +41,7 @@ class FE_Evolution : public TimeDependentOperator
         DofInfo &dofs;
         mutable Array <int> vdofs;
 
-        //SparseMatrix ML, ML_inv;
+        SparseMatrix ML_inv;
 
         const Vector lumpedMassMatrix;
         Vector lumpedMassMatrix_synced;

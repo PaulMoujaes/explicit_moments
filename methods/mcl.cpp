@@ -4,33 +4,11 @@
 #define PositivityFix 1
 
 MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_) : 
-        FEM(fes_, vfes_, sys_, dofs_, lumpedMassMatrix_), fij(numVar * nDofs, numVar * nDofs), BarStates(numVar * nDofs, numVar * nDofs), dij_mat(nDofs, nDofs), 
-        Phi_states((numVar - 1) * nDofs, (numVar - 1) * nDofs), rho_ij_star(nDofs, nDofs), umin(nDofs, numVar), umax(nDofs, numVar)
+        FE_Evolution(fes_, vfes_, sys_, dofs_, lumpedMassMatrix_), fij(numVar * nDofs, numVar * nDofs), BarStates(numVar * nDofs, numVar * nDofs), dij_mat(nDofs, nDofs), 
+        Phi_states((numVar - 1) * nDofs, (numVar - 1) * nDofs), rho_ij_star(nDofs, nDofs), umin(nDofs, numVar), umax(nDofs, numVar), uDot(numVar * nDofs), adf(numVar * nDofs)
 {
-    /*
-    targetScheme = false; 
-
-    if(!sys->steadyState || numVar == 1 || sys->solutionKnown)
-    {
-        targetScheme = true;
-    }
-
-    if(!targetScheme)
-    {   
-        cout << "\n" << "-----------------------------------------------------------------" << endl;
-        cout << "Loworder initialization on!" << "\n";
-        cout << "-----------------------------------------------------------------" << "\n\n";
-    }  
-    //*/
-
-    uDot.SetSize(numVar * nDofs);
-    uDot.UseDevice(true); 
-
-    uDof3.SetSize(numVar);
-    uDof4.SetSize(numVar);
-    uDof5.SetSize(numVar);
-    uDof6.SetSize(numVar);
-    uDiff.SetSize(numVar);
+    uDot.UseDevice(true);
+    adf.UseDevice(true);
 
     BilinearForm Mass(fes);
     Mass.AddDomainIntegrator(new MassIntegrator());
@@ -106,6 +84,70 @@ MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
     //*/ 
 }
 
+void MCL::Mult(const Vector &x, Vector &y) const
+{
+    MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
+    Expbc(x, y);
+    ComputeAntiDiffusiveFluxes(x, y, adf);
+
+    y+= adf;
+
+    auto I = dofs.I;
+    auto J = dofs.J;
+    for(int i = 0; i < nDofs; i++)
+    {
+        for(int n = 0; n < numVar; n++)
+        {
+            ui(n) = x(i + n * nDofs);
+        }
+
+        for(int k = I[i]; k < I[i+1]; k++)
+        {
+            int j = J[k];
+
+            if(j == i)
+            {
+                continue;
+            }
+
+            for(int n = 0; n < numVar; n++)
+            {
+                uj(n) = x(j + n * nDofs);
+            }
+
+            for(int d = 0; d < dim; d++)
+            {
+                cij(d) = Convection(i, j + d * nDofs);
+                cji(d) = Convection(j, i + d * nDofs);
+            }
+
+            double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
+
+            sys->EvaluateFlux(ui, fluxEval_i);
+            sys->EvaluateFlux(uj, fluxEval_j);
+
+            fluxEval_j -= fluxEval_i;
+            fluxEval_j.Mult(cij, flux_j);
+
+            for(int n = 0; n < numVar; n++)
+            {
+                y(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+            }
+        }
+
+        for(int n = 0; n < numVar; n++)
+        {
+            y(i + n * nDofs) /= lumpedMassMatrix(i);
+        }
+        /*
+        for(int d = 0; d < dim; d++)
+        {
+            res(i + (d+1) * nDofs) -= sys->collision_coeff * lumpedMassMatrix(i) * ui(d+1);
+        }
+        //*/ 
+    }
+}
+
 void MCL::CalcMinMax(const Vector &x, const SparseMatrix &BarStates, const SparseMatrix &Phi_states, DenseMatrix &umin, DenseMatrix &umax) const
 {
     umin = 0.0; umax = 0.0;
@@ -149,36 +191,6 @@ void MCL::CalcMinMax(const Vector &x, const SparseMatrix &BarStates, const Spars
     }
 }
 
-
-void MCL::AssembleSystem(const Vector &Mx_n, const Vector &x, SparseMatrix &S, Vector &b, const double dt) const
-{   
-    MFEM_ASSERT(S.Finalized(), "Matrix not finalized");
-    S = 0.0;
-    mD = S;
-    b = Mx_n;
-    
-    Assemble_A(x, S);
-    Assemble_minusD(x, mD);
-    S += mD;
-    
-    Impbc(x, S, dbc);
-    ComputeAntiDiffusiveFluxes(x, &S, dbc, adf);
-    b.Add(dt, dbc);
-    b.Add(dt, adf);
-    
-    S *= dt;
-    S += ML;
-
-    //*
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int d = 0; d < dim; d++)
-        {
-            S(i + (d+1) * nDofs, i + (d+1) * nDofs) += sys->collision_coeff * dt * lumpedMassMatrix(i);
-        }
-    }
-    //*/
-}
 
 
 void MCL::CalcBarState(const Vector &x, SparseMatrix &BarStates, SparseMatrix &Phi_states, SparseMatrix &dij_mat) const
@@ -263,28 +275,9 @@ void MCL::CalcBarState(const Vector &x, SparseMatrix &BarStates, SparseMatrix &P
 
 
 
-void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, const Vector &dbc, Vector &AntiDiffFluxes) const
+void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector &AntiDiffFluxes) const
 {   
-    AntiDiffFluxes = 0.0;
-    if(!targetScheme)
-    {
-        //AntiDiffFluxes = 0.0;
-        return;
-    }
-
-    if(A)
-    {
-        MFEM_ASSERT(A->Size() == numVar * nDofs, "Matrix dimensions wrong!");
-        A->Mult(x, uDot);
-        uDot *= -1.0;
-        uDot += dbc;
-        aux1 = uDot;
-        ML_inv.Mult(aux1, uDot);
-    }
-    else
-    {
-        CalcUdot(x, dbc, uDot);
-    }
+    CalcUdot(x, dbc, uDot);
     
     CalcBarState(x, BarStates, Phi_states, dij_mat);
     CalcMinMax(x, BarStates, Phi_states, umin, umax);
@@ -316,6 +309,9 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, con
                 double fij_min = 2.0 * dij * (umax(i,0) - uij);
                 double fij_max = 2.0 * dij* (uji - umin(j,0));
                 double fij_bound = min(fij_max, fij_min);
+                
+                //fij_max = 2.0 * dij* (uji - 1e-15);
+                //fij_bound = fij_max;
 
                 fij_star = min(fij_, fij_bound);
                 fij_star = max(0.0, fij_star);
@@ -325,6 +321,9 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, con
                 double fij_min = 2.0 * dij * (umin(i,0) - uij);
                 double fij_max = 2.0 * dij* (uji - umax(j,0));
                 double fij_bound = max(fij_max, fij_min);
+
+                //fij_min = 2.0 * dij * (1e-15 - uij);
+                //fij_bound = fij_min;
 
                 fij_star = max(fij_, fij_bound); 
                 fij_star= min(0.0 , fij_star);
@@ -369,7 +368,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, con
                 const double rij = rho_ij_star(i, j);
                 const double rji = rho_ij_star(j, i);
 
-                const double fij_ = MassMatrix(i, j) * (  (uDot(i + n * nDofs) - uDot(j + n * nDofs)) +  sys->collision_coeff * (x(i + n * nDofs) - x(j + n * nDofs))) + dij * (x(i + n * nDofs) - x(j + n * nDofs));  
+                const double fij_ = MassMatrix(i, j) * (  (uDot(i + n * nDofs) - uDot(j + n * nDofs))) + dij * (x(i + n * nDofs) - x(j + n * nDofs));  
                 const double gij_ = fij_ + 2.0 * dij * (uij - rij * phi_ij) ;
 
                 double gij_star;
@@ -385,7 +384,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, con
                 }
 
                 MFEM_ASSERT(abs(gij_star) < abs(gij_) + 1e-15, "a_ij rhophi wrong!");                
-                fij(i + n * nDofs, j +  n * nDofs) =  gij_star - 2.0 * dij * (uij - rij * phi_ij);
+                fij(i + n * nDofs, j +  n * nDofs) = gij_star - 2.0 * dij * (uij - rij * phi_ij);
             }
         }
     }
@@ -402,10 +401,11 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, con
 
                 for(int n = 0; n < numVar; n++)
                 {
-                    ui(n) = 0.5 * ( BarStates(i + n * nDofs, j + n * nDofs) + fij(i + n * nDofs, j +  n * nDofs) ) / dij_mat(i,j);
-                    uj(n) = 0.5 * ( BarStates(j + n * nDofs, i + n * nDofs) + fij(j + n * nDofs, i +  n * nDofs) ) / dij_mat(j,i);
+                    ui(n) =  BarStates(i + n * nDofs, j + n * nDofs) + 0.5 * fij(i + n * nDofs, j +  n * nDofs) / dij_mat(i,j);
+                    uj(n) =  BarStates(j + n * nDofs, i + n * nDofs) + 0.5 * fij(j + n * nDofs, i +  n * nDofs ) / dij_mat(j,i);
                 }
                 
+                //*
                 if(sys->ComputePressureLikeVariable(ui) < 0.0 || sys->ComputePressureLikeVariable(uj) < 0.0)
                 {
                     for(int n = 0; n < numVar; n++)
@@ -414,10 +414,20 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const SparseMatrix *A, con
                         fij(j + n * nDofs, i +  n * nDofs) = 0.0;
                     }
                 }
+                //*/
+                /*
+                if(!sys->Admissible(ui) || !sys->Admissible(uj))
+                {
+                    for(int n = 0; n < numVar; n++)
+                    {
+                        fij(i + n * nDofs, j +  n * nDofs) = 0.0;
+                        fij(j + n * nDofs, i +  n * nDofs) = 0.0;
+                    }
+                }
+                //*/
             }
         }
     #endif  
-
     const auto II = fij.ReadI();
     //const auto JJ = fij.ReadJ();
     const auto AA = fij.ReadData();
@@ -452,7 +462,7 @@ void MCL::CalcUdot(const Vector &x, const Vector &dbc, Vector &uDot) const
 
         for(int k = I[i]; k < I[i+1]; k++)
         {
-            int j = J[i];
+            int j = J[k];
             if(j == i)
             {
                 continue;
@@ -474,23 +484,22 @@ void MCL::CalcUdot(const Vector &x, const Vector &dbc, Vector &uDot) const
             sys->EvaluateFlux(ui, fluxEval_i);
             sys->EvaluateFlux(uj, fluxEval_j);
 
-            Vector cijfi(numVar), cijfj(numVar);
-
             fluxEval_i.Mult(cij, flux_i);
             fluxEval_j.Mult(cij, flux_j);
 
             for(int n = 0; n < numVar; n++)
             {
-                aux1(i + n * nDofs) +=  (dij * (uj(n) - ui(n)) - ( flux_j(n) - flux_i(n) ));
+                aux1(i + n * nDofs) +=  dij * (uj(n) - ui(n)) - ( flux_j(n) - flux_i(n) );
             }            
         }
 
+        /*
         for(int n = 1; n < numVar; n++)
         {
             aux1(i + n * nDofs) -= sys->collision_coeff * ui(n) * lumpedMassMatrix(i);
         }
+        //*/
     }
-
     ML_inv.Mult(aux1, uDot);
 }
 
@@ -498,7 +507,7 @@ void MCL::CalcUdot(const Vector &x, const Vector &dbc, Vector &uDot) const
 void MCL::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const
 {   
     Expbc(x, aux1);
-    ComputeAntiDiffusiveFluxes(x, NULL, aux1, adf);
+    ComputeAntiDiffusiveFluxes(x, aux1, adf);
     aux1 += adf;
     
     auto I = dofs.I;
@@ -544,10 +553,12 @@ void MCL::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) c
             }            
         }
 
+        /*
         for(int n = 1; n < numVar; n++)
         {
             aux1(i + n * nDofs) -= sys->collision_coeff * ui(n) * lumpedMassMatrix(i);
         }
+        //*/
     }
     ML_inv.Mult(aux1, res);
 }

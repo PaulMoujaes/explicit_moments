@@ -28,7 +28,7 @@ OUT_DIR = output
 DIRS = $(PRO_DIR) $(MET_DIR) $(AUX_DIR) $(FP_DIR) #$(OP_DIR) $(INT_DIR)
 
 AUX_FILES = $(BUI_DIR)/dofs.o
-MET_FILES = $(BUI_DIR)/feevol.met $(BUI_DIR)/loworder.met #$(BUI_DIR)/mcl.met
+MET_FILES = $(BUI_DIR)/feevol.met $(BUI_DIR)/loworder.met $(BUI_DIR)/mcl.met
 PRO_FILES = $(BUI_DIR)/system.pro $(BUI_DIR)/m1.pro
 # List scalar problems.
 

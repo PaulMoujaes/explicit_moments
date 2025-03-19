@@ -52,10 +52,14 @@ void M1::EvaluateFluxJacobian(const Vector &u, DenseTensor &fluxJac) const
     double chi = EvaluateEddingtonFactor(u);
     Vector v(dim);
     Evaluate_f_vec(u, v);
+
+    /*
     if(v.Norml2() > 1.0)
     {
         v /= v.Norml2();
     }
+    //*/
+
     double f_sq = v.Norml2();
     f_sq *= f_sq;
 
@@ -107,10 +111,13 @@ void M1::EvaluatePsi2(const Vector &u, DenseMatrix &psi2) const
         psi2(d,d) = 0.5 * (1.0 - chi);
     }
 
+    /*
     if(v.Norml2() > 1.0)
     {
         v /= v.Norml2();
     }
+    //*/
+
     double f_sq = v.Norml2();
     f_sq *= f_sq; 
     for(int i = 0; i < dim; i++)
@@ -288,6 +295,7 @@ void M1::SetBoundaryConditions(const Vector &y1, Vector &y2, const Vector &norma
             break;
         }
         default:
+            cout << attr << endl;
             MFEM_ABORT("Invalid boundary attribute.");
     }
 }

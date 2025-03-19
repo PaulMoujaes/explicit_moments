@@ -8,7 +8,7 @@ void zero_numVar(const Vector &x, Vector &zero)
 FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_):
     TimeDependentOperator(vfes_->GetVSize()),
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), numVar(sys_->numVar), lumpedMassMatrix(lumpedMassMatrix_), pmesh(fes_->GetParMesh()),
-    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm())
+    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), ML_inv(numVar * nDofs, numVar * nDofs)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -31,9 +31,6 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 
     dbc.SetSize(numVar * nDofs);
     dbc.UseDevice(true);
-    
-    adf.SetSize(numVar * nDofs);
-    adf.UseDevice(true);
 
     aux1.SetSize(numVar * nDofs);
     aux1.UseDevice(true);
@@ -59,17 +56,33 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 
     inflow.ProjectCoefficient(sys->bdrCond);
 
-    auto tr = pmesh->GetBdrFaceTransformations(0);
-    intorder = tr->Elem1->OrderW() + 2 * fes->GetFE(tr->Elem1No)->GetOrder();
-    if (fes->GetFE(tr->Elem1No)->Space() == FunctionSpace::Pk)
+    if(fes->GetNBE() >0 )
     {
-        intorder++;
+        auto tr = pmesh->GetBdrFaceTransformations(0);
+        intorder = tr->Elem1->OrderW() + 2 * fes->GetFE(tr->Elem1No)->GetOrder();
+        if (fes->GetFE(tr->Elem1No)->Space() == FunctionSpace::Pk)
+        {
+            intorder++;
+        }
     }
+    else 
+    {
+        intorder = 0;
+    }
+
+    for(int i = 0; i < nDofs; i++)
+    {
+        for(int n = 0; n < numVar; n++)
+        {
+            ML_inv.Set(i + n * nDofs, i + n * nDofs, 1.0 / lumpedMassMatrix(i));
+        }
+    }
+    ML_inv.Finalize(0);
 }
 
 void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 {
-    Expbc(x, y);
+    Expbc(x, aux1);
 
     auto I = dofs.I;
     auto J = dofs.J;
@@ -110,13 +123,8 @@ void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 
             for(int n = 0; n < numVar; n++)
             {
-                y(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+                aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
             }
-        }
-
-        for(int n = 0; n < numVar; n++)
-        {
-            y(i + n * nDofs) /= lumpedMassMatrix(i);
         }
         /*
         for(int d = 0; d < dim; d++)
@@ -125,6 +133,8 @@ void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
         }
         //*/ 
     }
+
+    ML_inv.Mult(aux1, y);
 }
 
 double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
@@ -175,7 +185,6 @@ void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
     FaceElementTransformations *tr;
     Vector nor(dim);
     bc = 0.0;
-
     for(int b = 0; b < fes->GetNBE(); b++)
     { 
         tr = pmesh->GetBdrFaceTransformations(b);

@@ -2,8 +2,8 @@
 #define MOMENTS_METHODS_LIB
 
 #include "loworder.hpp"
-//#include "mcl.hpp"
+#include "mcl.hpp"
 
-enum FEScheme {loworder};//, mcl};
+enum FEScheme {loworder, mcl};
 
 #endif

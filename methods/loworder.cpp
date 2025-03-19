@@ -6,6 +6,7 @@ LowOrder::LowOrder(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, Sy
 
 void LowOrder::Mult(const Vector &x, Vector &y) const    
 {
+    MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     ComputeLOTimeDerivatives(x, y);
 }
 
@@ -13,7 +14,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 
 void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const 
 {   
-    Expbc(x, res);
+    Expbc(x, aux1);
 
     auto I = dofs.I;
     auto J = dofs.J;
@@ -54,7 +55,7 @@ void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &r
 
             for(int n = 0; n < numVar; n++)
             {
-                res(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+                aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
             }
         }
 
@@ -66,11 +67,5 @@ void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &r
         //*/ 
     }
 
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int n = 0; n < numVar; n++)
-        {
-            res(i + n * nDofs) /= lumpedMassMatrix(i);
-        }
-    }
+    ML_inv.Mult(aux1, res);
 }
