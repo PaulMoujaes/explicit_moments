@@ -152,13 +152,17 @@ int main(int argc, char *argv[])
     int loc_elN = fes.GetNE();
     int glob_elN = 0;
     MPI_Allreduce(&loc_elN, &glob_elN, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    double h = sqrt((double) glob_elN);
     
     if(Mpi::Root())
     {
         cout << endl;
         cout << "Number of elements:               " << glob_elN << "\n";
         cout << "Number of unknowns:               " << problemSize << "\n";
-        cout << "Number of unknowns per component: " << component_problemSize << "\n\n";
+        cout << "Number of unknowns per component: " << component_problemSize << "\n";
+        cout << "1 / h =                           " << h << "\n";
+        cout << "h =                               " << 1.0 / h << "\n\n";
+
     }
         
 
@@ -191,7 +195,9 @@ int main(int argc, char *argv[])
     Du = 0.0;
     ParGridFunction res_gf = Du;
     ParGridFunction main(&fes, ublock.GetBlock(0));
+    ParGridFunction f(&fes);
     ParGridFunction psi1(&dfes, ublock.GetData() + fes.GetNDofs());
+    sys->ComputeDerivedQuantities(u, f);
     //ParGridFunction psi1(&dfes);
 
     ParBilinearForm *mL = new ParBilinearForm(&fes);
@@ -271,7 +277,7 @@ int main(int argc, char *argv[])
         pd->SetLevelsOfDetail(order);
         pd->RegisterField("psi0", &main);
         pd->RegisterField("psi1", &psi1);
-        //pd->RegisterField("residual", &res_gf);
+        pd->RegisterField("f", &f);
         //pd->RegisterField("inflow", &met->inflow);
 
         //pd->RegisterField("analytical solution", &ana_sol);
@@ -332,6 +338,7 @@ int main(int argc, char *argv[])
 
         if (paraview && (ti % paraviewSteps == 0 || done))
         {
+            sys->ComputeDerivedQuantities(u, f);
             pd->SetCycle(ti);
             pd->SetTime(t);
             pd->Save();

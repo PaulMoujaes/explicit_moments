@@ -18,7 +18,7 @@ public:
    virtual void ComputeErrors(Array<double> &errors, const ParGridFunction &u, double domainSize) const override;
    virtual bool Admissible(const Vector &u) const override;
    //virtual bool GloballyAdmissible(const Vector &x) const override;
-   //virtual void ComputeDerivedQuantities(const Vector &u, ParGridFunction &velocity, ParGridFunction &pressure, ParGridFunction &mach) const override;
+   virtual void ComputeDerivedQuantities(const Vector &u, ParGridFunction &f) const override;
    virtual void EvaluatePsi2(const Vector &u, DenseMatrix &psi2) const;
    virtual double EvaluateEddingtonFactor(const Vector &u) const;
    virtual double EvaluateDerivativeEddingtonFactor(const Vector &u) const;

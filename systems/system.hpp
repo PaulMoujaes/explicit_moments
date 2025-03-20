@@ -23,7 +23,7 @@ class System
         virtual double GetWaveSpeed(const Vector &u, const Vector n) const = 0;
         virtual bool Admissible(const Vector &u) const {MFEM_ABORT(""); return false;};
         virtual bool GloballyAdmissible(const Vector &x) const;
-        virtual void ComputeDerivedQuantities(const Vector &u, ParGridFunction &d1, ParGridFunction &d2, ParGridFunction &d3) const {};
+        virtual void ComputeDerivedQuantities(const Vector &u, ParGridFunction &d1) const {};
         virtual void SetBoundaryConditions(const Vector &y1, Vector &y2, const Vector &normal, int attr) const = 0;
         virtual double ComputeLambdaij(const Vector &n, const Vector &u1, const Vector &u2) const;
         virtual double ComputeDiffusion(const Vector &cij, const Vector &cji, const Vector &u1, const Vector &u2) const;

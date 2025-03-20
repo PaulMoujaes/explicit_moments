@@ -191,7 +191,7 @@ void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
         MFEM_ASSERT(tr->Elem2No < 0, "no boundary element");
 
         // if supersonic outlet then integral over boundary is zero so skip
-        if(tr->Attribute == 2)
+        if(tr->Attribute == 2 || tr->Attribute == 4)
         {   
             continue;
         }

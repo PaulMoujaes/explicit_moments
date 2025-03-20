@@ -25,9 +25,18 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
     {   
         case 0:
         {
-            problemName = "M1-Particle-Pulse";
+            problemName = "M1-Line-Source";
             solutionKnown = false;
             u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 2, "M1 Line Source only implemented in 2D!");
+            break;
+        }
+        case 1:
+        {
+            problemName = "M1-Flash-Test";
+            solutionKnown = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
             break;
         }
 
@@ -39,6 +48,19 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
     //collision_coeff = 0.0;
 }
 
+
+void M1::ComputeDerivedQuantities(const Vector &u, ParGridFunction &f) const
+{
+    int nDofs = vfes->GetNDofs();
+    for(int i = 0; i < nDofs; i++)
+    {
+        for(int n = 0; n < numVar; n++)
+        {
+            ui(n) = u(i + n * nDofs);
+        }
+        f(i) = Evaluate_f(ui);
+    }
+}
 
 double M1::ComputePressureLikeVariable(Vector &u) const
 {
@@ -286,6 +308,7 @@ void M1::SetBoundaryConditions(const Vector &y1, Vector &y2, const Vector &norma
             break;
         }
         case 2: // Supersonic outlet.
+        case 4: // Supersonic outlet.
         {
             y2 = y1;
             break;
@@ -313,6 +336,7 @@ void AnalyticalSolutionM1(const Vector &x, Vector &u)
     switch (configM1.benchmark)
     {
         case 0:
+        case 1:
         {
             MFEM_ABORT("tbd")
             break;
@@ -339,6 +363,22 @@ void InitialConditionM1(const Vector &x, Vector &u)
             u(0) = max(1e-4, ex);
             break;
         }
+        case 1:
+        {
+            Vector X = x;
+            X -= 10.0;
+            u = 0.0;
+            if(X.Norml2() <= 0.5) 
+            {
+                u(0) = 1.0;
+                u(1) = 0.9;
+            } 
+            else
+            {
+                u(0) = 1e-10;
+            }
+            break;
+        }
 
         default: 
         MFEM_ABORT("No initial condition for this benchmark implemented!");        
@@ -351,6 +391,7 @@ void InflowFunctionM1(const Vector &x, Vector &u)
     switch (configM1.benchmark)
     {
         case 0:
+        case 1:
         { 
             InitialConditionM1(x,u);  
             break;      
