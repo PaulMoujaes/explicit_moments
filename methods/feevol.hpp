@@ -10,8 +10,7 @@ class FE_Evolution : public TimeDependentOperator
         // General member variables
         ParFiniteElementSpace *fes;
         ParFiniteElementSpace *vfes;
-        GroupCommunicator &gcomm;
-        GroupCommunicator &vgcomm;
+        GroupCommunicator &gcomm, &vgcomm;
         ParMesh *pmesh;
         ParGridFunction inflow;
         System *sys;
@@ -22,7 +21,7 @@ class FE_Evolution : public TimeDependentOperator
         //mutable Array<double> sync, vsync;
 
         // Parameters that are needed repeatedly
-        const int dim, numVar, nDofs, nE;
+        const int dim, numVar, nDofs, nE, GLnDofs, TDnDofs;
 
         SparseMatrix shared;
 
@@ -40,14 +39,18 @@ class FE_Evolution : public TimeDependentOperator
         mutable ParGridFunction res_gf;
         DofInfo &dofs;
         mutable Array <int> vdofs;
+        //Array <int> GlD_to_TD;
+        Array<SparseMatrix*> C, CT;
+        mutable Array <Vector*> x_gl;
 
         SparseMatrix ML_inv;
 
-        const Vector lumpedMassMatrix;
-        Vector lumpedMassMatrix_synced;
+        mutable HypreParVector aux_hpr;
 
-        Vector lumpedM_oa, lumpedM_os;
-        SparseMatrix Convection, M_oa, M_os;
+        Vector lumpedMassMatrix;
+
+        //Vector lumpedM_oa, lumpedM_os;
+        SparseMatrix Convection, Convection_T; //, M_oa, M_os;
 
         FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_);
         virtual ~FE_Evolution() { } 
@@ -59,6 +62,7 @@ class FE_Evolution : public TimeDependentOperator
         virtual double Compute_dt(const Vector &x, const double CFL) const;
         virtual void Expbc(const Vector &x, Vector &bc) const;
         virtual double SteadyStateCheck(const Vector &u) const;
+        virtual void UpdateGlobalVector(const Vector &x) const;
         virtual void SyncVector(Vector &x) const;
         virtual void VSyncVector(Vector &x) const;
         

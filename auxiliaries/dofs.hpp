@@ -16,10 +16,9 @@ class DofInfo
         int nDofs;
         const int dim;
         mutable Table *DofToDofTable, *ElementToBdrElementTable;
-        SparseMatrix massmatrix;
+        SparseMatrix massmatrix, massmatrix_ld;
         DenseMatrix normals;
-        int* I;
-        int* J;
+        int* I, *J, *I_ld, *J_ld;
 
         explicit DofInfo(ParFiniteElementSpace *fes_);
         virtual ~DofInfo();

@@ -7,12 +7,18 @@ DofInfo::DofInfo(ParFiniteElementSpace *fes_):
     M.AddDomainIntegrator(new MassIntegrator());
     M.Assemble();
     M.Finalize();
-    massmatrix = M.SpMat();
+    massmatrix_ld = M.SpMat();
+    HypreParMatrix *MHP = M.ParallelAssemble();
+    MHP->MergeDiagAndOffd(massmatrix);
+    //massmatrix = M.SpMat();
 
     I = massmatrix.GetI();
     J = massmatrix.GetJ();
 
-    //*
+    I_ld = massmatrix_ld.GetI();
+    J_ld = massmatrix_ld.GetJ();
+
+    /*
     BuildDofToDofTable();
     BuildElementToBdrElementTable();
     //*/

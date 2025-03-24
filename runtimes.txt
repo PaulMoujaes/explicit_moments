@@ -60,3 +60,26 @@
 42.2528 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad.mesh -o 1 -vis 1 -cfl 1 -r 5 -fe 1 -ode 2 -ft 6.0 -vn MCL -ps 10 
 2835.1 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 1 -ode 2 -ft 6.0 -vn MCL -ps 10 
 41.9839 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad.mesh -o 1 -vis 1 -cfl 1 -r 5 -fe 1 -ode 2 -ft 6.0 -vn MCL -ps 10 
+14.8856 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 5 -fe 0 -ode 2 -ft 6.0 -vn LO_ref_forParallel -ps 10 
+942.475 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 0 -ode 2 -ft 6.0 -vn LO_ref_forParallel -ps 10 
+15.2011 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 5 -fe 0 -ode 2 -ft 6.0 -vn LO_after_Parallel -ps 10 
+7.89781 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 1 -fe 0 -ode 1 -ft 6.0 -vn LO_after_Parallel -dt 0.001 -ps 20 
+104.573 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel -dt 0.001 -ps 20 
+102.172 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 -ps 20 
+0.123818 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 0 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.0765628 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 0 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.904284 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+1.46853 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.855111 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.619489 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.427889 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.500335 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.737904 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.704069 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 
+0.850322 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 2 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 -ps 10000 
+18.9375 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_2222222 -dt 0.001 -ps 100 
+18.691 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_22 -dt 0.001 -ps 100 
+17.3439 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_22 -dt 0.001 -ps 100 
+5.00606 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 4 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_22 -dt 0.001 
+6.15602 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 4 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_22 -dt 0.001 
+0.734006 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 450 -r 4 -fe 0 -ode 1 -ft 0.45 -vn LO_after_Parallel_22 -dt 0.001 

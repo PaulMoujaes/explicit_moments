@@ -7,8 +7,9 @@ void zero_numVar(const Vector &x, Vector &zero)
 
 FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_):
     TimeDependentOperator(vfes_->GetVSize()),
-    fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), numVar(sys_->numVar), lumpedMassMatrix(lumpedMassMatrix_), pmesh(fes_->GetParMesh()),
-    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), ML_inv(numVar * nDofs, numVar * nDofs)
+    fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), lumpedMassMatrix(lumpedMassMatrix_), numVar(sys_->numVar), pmesh(fes_->GetParMesh()),
+    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), ML_inv(numVar * nDofs, numVar * nDofs), 
+    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar) //, GlD_to_TD(GLnDofs)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -18,9 +19,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 
     // Just to make sure
     MFEM_ASSERT(nDofs == lumpedMassMatrix.Size(), "nDofs x VDim might be wrong!");
-
-    lumpedMassMatrix_synced = lumpedMassMatrix;
-    SyncVector(lumpedMassMatrix_synced);
+    SyncVector(lumpedMassMatrix);
 
     ui.SetSize(numVar);
     uj.SetSize(numVar);
@@ -45,18 +44,72 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     flux_j.SetSize(numVar);
 
     // build convection matrix
-    const int btype = BasisType::Positive;
+    const int btype = BasisType::ClosedUniform;
     H1_FECollection fec(fes->GetFE(0)->GetOrder(), dim, btype);
-    FiniteElementSpace dfes(fes->GetMesh(), &fec, dim, Ordering::byNODES);
-    MixedBilinearForm Con(&dfes, fes);
+    ParFiniteElementSpace dfes(fes->GetParMesh(), &fec, dim, Ordering::byNODES);
+    ParMixedBilinearForm Con(&dfes, fes);
     Con.AddDomainIntegrator(new VectorDivergenceIntegrator());
     Con.Assemble();
     Con.Finalize(0);
     Convection = Con.SpMat();
+    //HypreParMatrix *C_hpm = Con.ParallelAssemble();
+    //C_hpm->MergeDiagAndOffd(Convection);
+
+
+    ParMixedBilinearForm Con_T(fes, &dfes);
+    Con_T.AddDomainIntegrator(new TransposeIntegrator(new VectorDivergenceIntegrator()));
+    Con_T.Assemble();
+    Con_T.Finalize(0);
+    Convection_T = Con_T.SpMat();
+    //HypreParMatrix *CT_hpm = Con_T.ParallelAssemble();
+    //CT_hpm->MergeDiagAndOffd(Convection_T);
+
+    for(int d = 0; d < dim; d++)
+    {
+        C[d] = new SparseMatrix(nDofs, nDofs);
+        CT[d] = new SparseMatrix(nDofs, nDofs);
+    }
+
+    auto I_ld = dofs.I_ld;
+    auto J_ld = dofs.J_ld;
+
+    for(int i = 0; i < nDofs; i++)
+    {
+        for(int k = I_ld[i]; k < I_ld[i+1]; k++)
+        {
+            int j = J_ld[k];
+            for(int d = 0; d < dim; d++)
+            {
+                C[d]->Set(i,j, Convection(i,j + d * nDofs));
+                CT[d]->Set(i,j, Convection_T(i + d * nDofs, j));
+            }
+        }
+    }
+
+    for(int d = 0; d < dim; d++)
+    {
+        C[d]->Finalize(0);
+        CT[d]->Finalize(0);
+    }
+
+    ParBilinearForm dummy(fes);
+
+    for(int d = 0; d < dim; d++)
+    {
+        HypreParMatrix *hpr = dummy.ParallelAssemble(C[d]);
+        delete C[d];
+        C[d] = new SparseMatrix;
+        hpr->MergeDiagAndOffd(*C[d]);
+
+        HypreParMatrix *hpr1 = dummy.ParallelAssemble(CT[d]);
+        delete CT[d];
+        CT[d] = new SparseMatrix;
+        hpr1->MergeDiagAndOffd(*CT[d]);
+    }
 
     inflow.ProjectCoefficient(sys->bdrCond);
 
-    if(fes->GetNBE() >0 )
+    if(fes->GetNBE() > 0)
     {
         auto tr = pmesh->GetBdrFaceTransformations(0);
         intorder = tr->Elem1->OrderW() + 2 * fes->GetFE(tr->Elem1No)->GetOrder();
@@ -78,67 +131,17 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
         }
     }
     ML_inv.Finalize(0);
+
 }
 
 void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 {
-    Expbc(x, aux1);
 
-    auto I = dofs.I;
-    auto J = dofs.J;
-    for(int i = 0; i < nDofs; i++)
-    {
-        for(int n = 0; n < numVar; n++)
-        {
-            ui(n) = x(i + n * nDofs);
-        }
-
-        for(int k = I[i]; k < I[i+1]; k++)
-        {
-            int j = J[k];
-
-            if(j == i)
-            {
-                continue;
-            }
-
-            for(int n = 0; n < numVar; n++)
-            {
-                uj(n) = x(j + n * nDofs);
-            }
-
-            for(int d = 0; d < dim; d++)
-            {
-                cij(d) = Convection(i, j + d * nDofs);
-                cji(d) = Convection(j, i + d * nDofs);
-            }
-
-            double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
-
-            sys->EvaluateFlux(ui, fluxEval_i);
-            sys->EvaluateFlux(uj, fluxEval_j);
-
-            fluxEval_j -= fluxEval_i;
-            fluxEval_j.Mult(cij, flux_j);
-
-            for(int n = 0; n < numVar; n++)
-            {
-                aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
-            }
-        }
-        /*
-        for(int d = 0; d < dim; d++)
-        {
-            res(i + (d+1) * nDofs) -= sys->collision_coeff * lumpedMassMatrix(i) * ui(d+1);
-        }
-        //*/ 
-    }
-
-    ML_inv.Mult(aux1, y);
 }
 
 double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
 {
+    /*
     double lambda_max = 0.0;
 
     auto I = dofs.I;
@@ -178,6 +181,8 @@ double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
         lambda_max = max(lambda_max, 2.0 * dij_sum / lumpedMassMatrix(i));
     }
     return CFL / lambda_max;
+    //*/
+    return 0.001;
 }
 
 void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
@@ -282,4 +287,25 @@ void FE_Evolution::VSyncVector(Vector &x) const
     Array<double> sync(x.GetData(), nDofs * numVar);
     vgcomm.Reduce<double>(sync, GroupCommunicator::Sum);
     vgcomm.Bcast(sync);
+}
+
+
+void FE_Evolution::UpdateGlobalVector(const Vector &x) const
+{
+    MFEM_VERIFY(x.Size() == nDofs * numVar, "Wrong size!");
+
+    for(int n = 0; n < numVar; n++)
+    {
+        for(int i = 0; i < nDofs; i++)
+        {
+            int i_td = fes->GetLocalTDofNumber(i);
+            if(i_td != -1)
+            {                
+                aux_hpr(i_td) = x(i + n * nDofs);
+            }
+        }
+
+        x_gl[n] = aux_hpr.GlobalVector();
+        MFEM_VERIFY(x_gl[n]->Size() == GLnDofs, "wrong size!");
+    }
 }

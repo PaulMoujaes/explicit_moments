@@ -198,7 +198,6 @@ int main(int argc, char *argv[])
     ParGridFunction f(&fes);
     ParGridFunction psi1(&dfes, ublock.GetData() + fes.GetNDofs());
     sys->ComputeDerivedQuantities(u, f);
-    //ParGridFunction psi1(&dfes);
 
     ParBilinearForm *mL = new ParBilinearForm(&fes);
     Vector lumpedMassMatrix(mL->Height());
@@ -231,7 +230,7 @@ int main(int argc, char *argv[])
     switch(FEscheme)
     {
         case loworder: met = new LowOrder(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
-        case mcl: met = new MCL(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
+        //case mcl: met = new MCL(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
         default: 
         {
             if(Mpi::Root())
@@ -317,7 +316,15 @@ int main(int argc, char *argv[])
         odesolver->Step(u, t, dt_real);
 
         done = (t >= t_final - 1e-8*dt);
-         
+
+        double min_loc = main.Min();
+        double max_loc = main.Max();
+        double min_glob, max_glob;
+        MPI_Allreduce(&min_loc, &min_glob, 1, MPI_DOUBLE, MPI_MIN,
+                  MPI_COMM_WORLD);
+        MPI_Allreduce(&max_loc, &max_glob, 1, MPI_DOUBLE, MPI_MAX,
+                  MPI_COMM_WORLD);
+
         if ((done || ti % visualizationSteps == 0) && Mpi::Root())
         {               
             // visualize on console
@@ -331,7 +338,7 @@ int main(int argc, char *argv[])
             mins = mins % 60;
 
 
-            cout << "Time step: " << ti << ", Time: " << t << ", main in [" << main.Min() << ", "<< main.Max() << "], Remaining: " << hrs << "hrs " << mins << "mins " << secs << "secs." << '\n';
+            cout << "Time step: " << ti << ", Time: " << t << ", main in [" << min_glob << ", "<< max_glob << "], Remaining: " << hrs << "hrs " << mins << "mins " << secs << "secs." << '\n';
 
             start = high_resolution_clock::now();
         }
@@ -395,11 +402,23 @@ int main(int argc, char *argv[])
         }
     }
 
+    loc_mass = main * lumpedMassMatrix;
+    double glob_end_mass = 0.0;
+    MPI_Allreduce(&loc_mass, &glob_end_mass, 1, MPI_DOUBLE, MPI_SUM,
+              MPI_COMM_WORLD);
+    double min_loc = main.Min();
+    double max_loc = main.Max();
+    double min_glob, max_glob;
+    MPI_Allreduce(&min_loc, &min_glob, 1, MPI_DOUBLE, MPI_MIN,
+                  MPI_COMM_WORLD);
+    MPI_Allreduce(&max_loc, &max_glob, 1, MPI_DOUBLE, MPI_MAX,
+                  MPI_COMM_WORLD);
+
     if(Mpi::Root())
     {
-        cout  << "Minimum of primary values:          " << main.Min() << '\n'
-            << "Maximum of primary values:          " << main.Max() << '\n'
-            << "Difference in solution mass:        " << abs(glob_init_mass - lumpedMassMatrix * main) / domainSize << "\n\n";
+        cout  << "Minimum of primary values:          " << min_glob << '\n'
+            << "Maximum of primary values:          " << max_glob << '\n'
+            << "Difference in solution mass:        " << abs(glob_init_mass - glob_end_mass) / domainSize << "\n\n";
 
         if (paraview)
         {
