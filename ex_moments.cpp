@@ -230,7 +230,7 @@ int main(int argc, char *argv[])
     switch(FEscheme)
     {
         case loworder: met = new LowOrder(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
-        //case mcl: met = new MCL(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
+        case mcl: met = new MCL(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
         default: 
         {
             if(Mpi::Root())

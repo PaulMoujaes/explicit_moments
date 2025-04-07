@@ -8,7 +8,6 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 {   
     MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     Expbc(x, aux1);
-    aux1 = 0.0;
 
     UpdateGlobalVector(x);
 
@@ -22,9 +21,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 
         for(int n = 0; n < numVar; n++)
         {   
-            ui(n) = x(i + n * nDofs);//x_gl->Elem(i_gl + n * GLnDofs);
-            double xx = x(i + n * nDofs) - x_gl[n]->Elem(i_gl);
-            MFEM_VERIFY(abs(xx) < 1e-15, "global and local not same");
+            ui(n) = x(i + n * nDofs);
         }
 
         for(int k = I[i_td]; k < I[i_td+1]; k++)
@@ -39,31 +36,14 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 
             for(int d = 0; d < dim; d++)
             {   
-                //cij(d) = Convection(i_td, j_gl +  d * nDofs);//C[d]->Elem(i_td,j_gl);
-                //cji(d) = Convection(j_gl, i_td +  d * nDofs); //CT[d]->Elem(i_td,j_gl);
-
                 cij(d) = C[d]->Elem(i_td,j_gl);
                 cji(d) = CT[d]->Elem(i_td,j_gl);
-
             }
 
             double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
 
             sys->EvaluateFlux(ui, fluxEval_i);
             sys->EvaluateFlux(uj, fluxEval_j);
-            
-            /*
-            if(Mpi::Root())
-            {
-                ui.Print();
-                uj.Print();
-                cij.Print();
-                cji.Print();
-                fluxEval_i.Print();
-                fluxEval_j.Print();
-                cout << "----------------" << "\n\n";
-            }
-            //*/
 
             fluxEval_j -= fluxEval_i;
             fluxEval_j.Mult(cij, flux_j);
@@ -74,32 +54,26 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
             }
         }
     }
+
+    /*
     for(int n = 0; n < numVar; n++)
     {
         delete x_gl[n];
     }
+    //*/
 
-    for(int i = 0; i < nDofs; i++)
-    {
-        if(fes->GetLocalTDofNumber(i) == -1)
-        {
-            for(int n = 0; n < numVar; n++)
-            {   
-                MFEM_VERIFY(abs(aux1(i + n * nDofs)) < 1e-15, "non td not zero");
-            }
-        }
-    }
+    updated = false;
 
     VSyncVector(aux1);
     ML_inv.Mult(aux1, y);
-    //MFEM_ABORT("")
 }
 
 
 
-// TODO parallel
 void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const 
 {  
+    Mult(x, res);
+    
     /* 
     Expbc(x, aux1);
 

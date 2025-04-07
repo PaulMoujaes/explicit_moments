@@ -42,6 +42,7 @@ class FE_Evolution : public TimeDependentOperator
         //Array <int> GlD_to_TD;
         Array<SparseMatrix*> C, CT;
         mutable Array <Vector*> x_gl;
+        mutable bool updated;
 
         SparseMatrix ML_inv;
 
@@ -64,6 +65,8 @@ class FE_Evolution : public TimeDependentOperator
         virtual double SteadyStateCheck(const Vector &u) const;
         virtual void UpdateGlobalVector(const Vector &x) const;
         virtual void SyncVector(Vector &x) const;
+        virtual void SyncVector_Min(Vector &x) const;
+        virtual void SyncVector_Max(Vector &x) const;
         virtual void VSyncVector(Vector &x) const;
         
         /*

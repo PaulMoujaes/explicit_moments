@@ -9,13 +9,15 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     TimeDependentOperator(vfes_->GetVSize()),
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), lumpedMassMatrix(lumpedMassMatrix_), numVar(sys_->numVar), pmesh(fes_->GetParMesh()),
     nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), ML_inv(numVar * nDofs, numVar * nDofs), 
-    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar) //, GlD_to_TD(GLnDofs)
+    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false) //, GlD_to_TD(GLnDofs)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
     {
         MFEM_ABORT("FiniteElementSpace must be H1 conforming (CG).");
     }
+
+    x_gl = NULL;
 
     // Just to make sure
     MFEM_ASSERT(nDofs == lumpedMassMatrix.Size(), "nDofs x VDim might be wrong!");
@@ -141,14 +143,19 @@ void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 
 double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
 {
-    /*
+    //*
     double lambda_max = 0.0;
+    UpdateGlobalVector(x);
 
     auto I = dofs.I;
     auto J = dofs.J;
 
     for(int i = 0; i < nDofs; i++)
     {
+        int i_td = fes->GetLocalTDofNumber(i);
+        if(i_td == -1) {continue;}
+        int i_gl = fes->GetGlobalTDofNumber(i);
+
         for(int n = 0; n < numVar; n++)
         {
             ui(n) = x(i + n * nDofs);
@@ -156,38 +163,40 @@ double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
 
         double  dij_sum = 0.0;
 
-        for(int k = I[i]; k < I[i+1]; k++)
+        for(int k = I[i_td]; k < I[i_td+1]; k++)
         {   
-            int j = J[k];
-            if(j == i)
+            int j_gl = J[k];
+            if(j_gl == i_gl)
             {
                 continue;
+            }
+
+            for(int n = 0; n < numVar; n++)
+            {   
+                uj(n) = x_gl[n]->Elem(j_gl);
             }
 
             for(int d = 0; d < dim; d++)
             {   
                 // c_ij
-                cij(d) = Convection(i, j + d * nDofs);
-                cji(d) = Convection(j, i + d * nDofs);
-            }
-
-            for(int n = 0; n < numVar; n++)
-            {
-                uj(n) = x(j + n * nDofs);
+                cij(d) = C[d]->Elem(i_td,j_gl);
+                cji(d) = CT[d]->Elem(i_td,j_gl);
             }
 
             dij_sum += sys->ComputeDiffusion(cij, cji, ui, uj);
         }
         lambda_max = max(lambda_max, 2.0 * dij_sum / lumpedMassMatrix(i));
     }
-    return CFL / lambda_max;
-    //*/
-    return 0.001;
+    double glob_lambdamax;
+    MPI_Allreduce(&lambda_max, &glob_lambdamax, 1, MPI_DOUBLE, MPI_MAX,
+        MPI_COMM_WORLD);
+
+    return CFL / glob_lambdamax;
 }
 
 void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
 {
-    FaceElementTransformations *tr;
+    FaceElementTransformations *tr = NULL;
     Vector nor(dim);
     bc = 0.0;
     for(int b = 0; b < fes->GetNBE(); b++)
@@ -280,6 +289,22 @@ void FE_Evolution::SyncVector(Vector &x) const
     gcomm.Bcast(sync);
 }
 
+void FE_Evolution::SyncVector_Max(Vector &x) const
+{
+    MFEM_VERIFY(x.Size() == nDofs, "wrong size");
+    Array<double> sync(x.GetData(), nDofs);
+    gcomm.Reduce<double>(sync, GroupCommunicator::Max);
+    gcomm.Bcast(sync);
+}
+
+void FE_Evolution::SyncVector_Min(Vector &x) const
+{
+    MFEM_VERIFY(x.Size() == nDofs, "wrong size");
+    Array<double> sync(x.GetData(), nDofs);
+    gcomm.Reduce<double>(sync, GroupCommunicator::Min);
+    gcomm.Bcast(sync);
+}
+
 
 void FE_Evolution::VSyncVector(Vector &x) const
 {
@@ -292,10 +317,20 @@ void FE_Evolution::VSyncVector(Vector &x) const
 
 void FE_Evolution::UpdateGlobalVector(const Vector &x) const
 {
+    if(updated)
+    {
+        return;
+    }
+
     MFEM_VERIFY(x.Size() == nDofs * numVar, "Wrong size!");
 
     for(int n = 0; n < numVar; n++)
     {
+        if(x_gl[n])
+        {
+            delete x_gl[n];
+        }
+        
         for(int i = 0; i < nDofs; i++)
         {
             int i_td = fes->GetLocalTDofNumber(i);
@@ -308,4 +343,5 @@ void FE_Evolution::UpdateGlobalVector(const Vector &x) const
         x_gl[n] = aux_hpr.GlobalVector();
         MFEM_VERIFY(x_gl[n]->Size() == GLnDofs, "wrong size!");
     }
+    updated = true;
 }
