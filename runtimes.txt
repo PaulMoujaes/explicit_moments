@@ -132,3 +132,13 @@
 2.01019 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 100 -r 3 -fe 1 -ode 1 -ft 0.45 -cfl 1 -vn MCL_after_Parallel_22 
 2.9253 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 100 -r 3 -fe 1 -ode 2 -ft 0.45 -cfl 1 -vn MCL_after_Parallel_22 
 10.3748 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 100 -r 3 -fe 1 -ode 2 -ft 0.45 -cfl 1 -vn MCL_after_Parallel_22 
+824.845 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 1 -ode 2 -ft 6.0 -vn AP_MCL -ps 50 
+4110.01 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 8 -fe 1 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL -ps 170 
+6595.81 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 8 -fe 1 -ode 2 -ft 6.0 -vn AP_MCL -ps 100 
+2.65276 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 5 -fe 0 -ode 2 -ft 6.0 -vn AP_LO -ps 100 
+12.6349 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 5 -fe 1 -ode 2 -ft 6.0 -vn AP_MCL -ps 100 
+829.353 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 1 -ode 2 -ft 6.0 -vn AP_MCL -ps 100 
+3422.36 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 8 -fe 2 -ode 2 -ft 6.0 -vn AP_MCL_COMP -ps 100 
+568.237 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 2 -ode 2 -ft 6.0 -vn AP_MCL_COMP -ps 50 
+593.816 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 2 -ode 2 -ft 6.0 -vn AP_MCL_COMP_no0 -ps 50 
+5338.92 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 8 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_COMP -ps 170 

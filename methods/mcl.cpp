@@ -285,13 +285,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 fij_star= min(0.0 , fij_star);
             }
 
-            //*
-            if(abs(x_gl[0]->Elem(i_gl) - x_gl[0]->Elem(j_gl)) < 1e-14)
-            {
-                fij_star = 0.0;
-            }
-            //*/
-
             MFEM_ASSERT(abs(fij_star) <= abs(fij_) + 1e-15, "a_ij density wrong!");
             
             fij_gl[0]->Elem(i_td, j_gl) = fij_star;

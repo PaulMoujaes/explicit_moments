@@ -11,7 +11,7 @@
 
 # Use the MFEM build directory.
 
-MFEM_DIR ?= ../../builds/MFEM_debug
+MFEM_DIR ?= ../../builds/MFEM
 CONFIG_MK = $(MFEM_DIR)/share/mfem/config.mk
 
 MFEM_LIB_FILE = mfem_is_not_built
@@ -28,7 +28,7 @@ OUT_DIR = output
 DIRS = $(PRO_DIR) $(MET_DIR) $(AUX_DIR) $(FP_DIR) #$(OP_DIR) $(INT_DIR)
 
 AUX_FILES = $(BUI_DIR)/dofs.o
-MET_FILES = $(BUI_DIR)/feevol.met $(BUI_DIR)/loworder.met $(BUI_DIR)/mcl.met
+MET_FILES = $(BUI_DIR)/feevol.met $(BUI_DIR)/loworder.met $(BUI_DIR)/mcl.met $(BUI_DIR)/mcl_comp.met
 PRO_FILES = $(BUI_DIR)/system.pro $(BUI_DIR)/m1.pro
 # List scalar problems.
 

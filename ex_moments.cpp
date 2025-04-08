@@ -231,6 +231,7 @@ int main(int argc, char *argv[])
     {
         case loworder: met = new LowOrder(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
         case mcl: met = new MCL(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
+        case mcl_comp: met = new MCL_Comp(&fes, &vfes, sys, dofs, lumpedMassMatrix); break;
         default: 
         {
             if(Mpi::Root())

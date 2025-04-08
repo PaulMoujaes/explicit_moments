@@ -3,7 +3,8 @@
 
 #include "loworder.hpp"
 #include "mcl.hpp"
+#include "mcl_comp.hpp"
 
-enum FEScheme {loworder, mcl};
+enum FEScheme {loworder, mcl, mcl_comp};
 
 #endif
