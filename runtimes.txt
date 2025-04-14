@@ -142,3 +142,14 @@
 568.237 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 2 -ode 2 -ft 6.0 -vn AP_MCL_COMP -ps 50 
 593.816 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -cfl 1 -r 7 -fe 2 -ode 2 -ft 6.0 -vn AP_MCL_COMP_no0 -ps 50 
 5338.92 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 8 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_COMP -ps 170 
+6425.2 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 8 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_COMP_no0 -ps 170 
+3514.71 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 8 -fe 2 -ode 2 -ft 6 -cfl 1 -vn AP_MCL_COMP_n0 -ps 100 
+4214.7 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 8 -fe 1 -ode 2 -ft 6 -cfl 1 -vn AP_MCL_n0 -ps 100 
+7563.03 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 8 -fe 1 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_no0 -ps 170 
+980.952 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_Comp_n0 -ps 170 
+1131.18 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 1 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_n0 -ps 170 
+15.3467 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_COMP_n0 -ps 170 
+118.948 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 6 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn AP_MCL_COMP_n0 -ps 170 
+121.601 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 6 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn MCLcomp_PA -ps 170 
+1011.27 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn MCLcomp_PA -ps 170 
+738.624 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 6 -cfl 1 -vn MCLcomp_PA -ps 170 

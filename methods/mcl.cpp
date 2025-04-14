@@ -414,8 +414,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
 
 void MCL::CalcUdot(const Vector &x, const Vector &dbc) const
 {   
-    // TBD: We need the global Vector of uDot
-
     aux2 = dbc;
 
     // just to make sure

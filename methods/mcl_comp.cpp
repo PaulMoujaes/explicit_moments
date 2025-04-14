@@ -130,6 +130,9 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
 
     // positivity fix
     #if PositivityFix == 1
+        int counter = 0;
+
+        //*
         for(int i = 0; i < nDofs; i++)
         {   
             int i_td = fes->GetLocalTDofNumber(i);
@@ -142,23 +145,78 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
                 if(j_gl == i_gl){continue;}
 
                 double dij = CalcBarState_returndij(i, j_gl, uij, uji);
+                
+                double psi1_ij_sq = 0.0;
+                double psi1_ji_sq = 0.0;
+
+                double f1_ij_sq = 0.0;
+
+                double f1p1_ij = 0.0;
+                double f1p1_ji = 0.0;
+
+                for(int d = 0; d < dim; d++)
+                {
+                    f1_ij_sq += fij_gl[d+1]->Elem(i_td, j_gl) * fij_gl[d+1]->Elem(i_td, j_gl);
+
+                    psi1_ij_sq += uij(d+1) * uij(d+1);
+                    psi1_ji_sq += uji(d+1) * uji(d+1);
+                    
+                    f1p1_ij += uij(d+1) * fij_gl[d+1]->Elem(i_td, j_gl);
+                    f1p1_ji += - fij_gl[d+1]->Elem(i_td, j_gl) * uji(d+1);
+
+                }
+
+                double f1_ji_sq = f1_ij_sq; // fij = - fji => fij^2 = fji^2
+                double f0_ij = fij_gl[0]->Elem(i_td, j_gl);
+                double f0_ji = - f0_ij;
+
+                double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
+                double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
+
+                double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
+                double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
+
+                double aij = Qij / Rij;
+                double aji = Qji / Rji;
+                
+                double alpha = 1.0;
+                if(Rij > Qij && Rji > Qji)
+                {
+                    alpha = min(aij, aji);
+                }
+                else if( Rij > Qij && Rji <= Qji)
+                {
+                    alpha = aij;
+                }
+                else if( Rij <= Qij && Rji > Qji)
+                {
+                    alpha = aji;
+                }
+                
+                if(alpha < 1.0 - 1e-12)
+                {
+                    //cout << alpha << endl;
+                    counter++;
+                }
+
 
                 for(int n = 0; n < numVar; n++)
                 {
+                    fij_gl[n]->Elem(i_td, j_gl) *= alpha;
+
                     uij(n) += 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;  
                     uji(n) -= 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;
                 }
                 
-                if(sys->ComputePressureLikeVariable(uij) < 0.0 || sys->ComputePressureLikeVariable(uji) < 0.0)
-                {
-                    for(int n = 0; n < numVar; n++)
-                    {
-                        fij_gl[n]->Elem(i_td, j_gl) = 0.0;
-                    }
-                }
+                MFEM_VERIFY(sys->Admissible(uij) && sys->Admissible(uji), "PA barstates not PA!");
+
             }
         }
+        //*/
+
+        //cout << counter << " / " << nDofs << endl;
     #endif
+
 
     AntiDiffFluxes = 0.0;
     for(int n = 0; n < numVar; n++)
@@ -176,5 +234,10 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
                 AntiDiffFluxes(i + n * nDofs) += Fij[k];
             }
         }
+    }
+
+    if(Mpi::Root())
+    {
+        cout << "--------------------------" << endl;
     }
 }
