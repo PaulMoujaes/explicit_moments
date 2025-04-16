@@ -53,6 +53,12 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
                 aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
             }
         }
+
+        // add source term 
+        for(int n = 0; n < numVar; n++)
+        {
+            aux1(i + n * nDofs) += Source(i + n * nDofs);
+        }
     }
 
     /*
@@ -65,7 +71,8 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
     updated = false;
 
     VSyncVector(aux1);
-    ML_inv.Mult(aux1, y);
+    One_over_MLpdtMLs.Mult(aux1, y);
+    ML_over_MLpdtMLs_m1.AddMult(x, y, 1.0 / dt);
 }
 
 

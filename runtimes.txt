@@ -153,3 +153,39 @@
 121.601 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 6 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn MCLcomp_PA -ps 170 
 1011.27 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn MCLcomp_PA -ps 170 
 738.624 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 6 -cfl 1 -vn MCLcomp_PA -ps 170 
+6038.12 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 8 -fe 2 -ode 2 -ft 6 -cfl 1 -vn MCLcomp_PA -ps 170 
+14.6991 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn MCLcomp_PA 
+16.3847 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 200 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn MCLcomp_PA 
+16.4361 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 200 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn D_v -ps 100 
+14.215 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 200 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn D_psi1 -ps 100 
+955.588 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn D_psi1 -ps 170 
+929.057 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 6 -cfl 1.0 -vn D_psi1 -ps 170 
+1255.85 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn D_psi1 -ps 170 
+1318.3 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 1 -vn D_psi1 -ps 170 
+2499.81 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 0.45 -cfl 0.5 -vn MCL -ps 170 -i 
+1763.6 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 6 -cfl 0.5 -vn MCL -ps 170 -i 
+1869.45 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 6 -cfl 0.5 -vn MCL 
+7.6003 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q -ps 10 
+327.258 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q -ps 10 
+4.23963 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q10 -ps 100 
+1848.12 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 8 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q -ps 100 
+225.101 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q -ps 100 
+111.598 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 3 -cfl 1 -vn LO_sigma_q -ps 100 
+132.309 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 3 -cfl 1 -vn LO_sigma0_q -ps 100 
+221.683 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma0_q -ps 100 
+219.695 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 6 -cfl 0.5 -vn LO_sigma0_q0 -ps 100 
+4.34086 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q -ps 100 
+2.18214 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 0 -ode 1 -ft 3 -cfl 1 -vn LO_sigma_q -ps 100 
+262.612 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 3 -cfl 0.5 -vn LO_sigma_q -ps 100 
+30.0305 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.5 -vn MCLcomp_sigma_q -ps 100 
+1760.57 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 3 -cfl 0.5 -vn MCLcomp_sigma_q -ps 100 
+14.7475 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 1 -vn MCLcompNOmijs_sigma_q -ps 100 
+15.0134 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 1 -vn MCLcompNOmijs_sigma_q -ps 100 
+16.4106 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.9 -vn MCLcompNOmijs_sigma_q -ps 100 
+87.5986 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.9 -vn MCLcompNOmijs_sigma_q_ser -ps 100 
+40.9096 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.9 -vn MCLcompNOmijs_sigma_q_ser -ps 50 
+88.3897 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.9 -vn MCLcompNOmijs_sigma_q_ser -ps 50 
+87.8306 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.9 -vn MCLcomp_sigma_q_ser -ps 50 
+22.2077 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 0.9 -vn LO_sigma_q -ps 50 
+21.7058 seconds needed for the run: ./ex_moments -sys 0 -b 0 -m meshes/periodic-4quad.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 0.45 -cfl 0.9 -vn LO_sigma_q_NEW -ps 50 
+15.9746 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3 -cfl 0.9 -vn MCLcomp_sigma_q_NEW -ps 50 

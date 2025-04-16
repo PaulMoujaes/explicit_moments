@@ -19,6 +19,11 @@ System::~System()
    {
       delete Sigma_1;
    }
+   
+   if(q) 
+   {
+      delete q;
+   }
 }
 
 void System::WriteErrors(const Array<double> &errors) const

@@ -7,6 +7,7 @@
 class FE_Evolution : public TimeDependentOperator
 {
     public: 
+        double dt;
         // General member variables
         ParFiniteElementSpace *fes;
         ParFiniteElementSpace *vfes;
@@ -44,11 +45,14 @@ class FE_Evolution : public TimeDependentOperator
         mutable Array <Vector*> x_gl;
         mutable bool updated;
 
+        mutable SparseMatrix ML_over_MLpdtMLs_m1, One_over_MLpdtMLs;
         SparseMatrix ML_inv;
 
         mutable HypreParVector aux_hpr;
 
-        Vector lumpedMassMatrix;
+        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps, Source;
+
+        SparseMatrix M_sigma_a, M_sigma_aps;
 
         //Vector lumpedM_oa, lumpedM_os;
         SparseMatrix Convection, Convection_T; //, M_oa, M_os;
@@ -63,6 +67,7 @@ class FE_Evolution : public TimeDependentOperator
         virtual double Compute_dt(const Vector &x, const double CFL) const;
         virtual void Expbc(const Vector &x, Vector &bc) const;
         virtual double SteadyStateCheck(const Vector &u) const;
+        virtual void Set_dt_Update_MLsigma(const double dt_);
         virtual void UpdateGlobalVector(const Vector &x) const;
         virtual void SyncVector(Vector &x) const;
         virtual void SyncVector_Min(Vector &x) const;

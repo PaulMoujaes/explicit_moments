@@ -99,7 +99,8 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
             
             for(int n = 0; n < numVar; n++)
             {
-                const double fij_ = dofs.massmatrix(i_td, j_gl) * (uDot_gl[n]->Elem(i_gl) - uDot_gl[n]->Elem(j_gl)) + dij * (x_gl[n]->Elem(i_gl) - x_gl[n]->Elem(j_gl));
+                double mij_sigma = (n == 0) * M_sigma_a(i_td, j_gl) + (n > 0) * M_sigma_aps(i_td, j_gl);
+                const double fij_ = dofs.massmatrix(i_td, j_gl) * (uDot_gl[n]->Elem(i_gl) - uDot_gl[n]->Elem(j_gl)) + (dij + mij_sigma) * (x_gl[n]->Elem(i_gl) - x_gl[n]->Elem(j_gl));
                 double fij_star;
             
                 if( fij_> 0)
@@ -234,10 +235,5 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
                 AntiDiffFluxes(i + n * nDofs) += Fij[k];
             }
         }
-    }
-
-    if(Mpi::Root())
-    {
-        cout << "--------------------------" << endl;
     }
 }

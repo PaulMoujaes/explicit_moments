@@ -8,8 +8,10 @@ void zero_numVar(const Vector &x, Vector &zero)
 FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_, DofInfo &dofs_,Vector &lumpedMassMatrix_):
     TimeDependentOperator(vfes_->GetVSize()),
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), lumpedMassMatrix(lumpedMassMatrix_), numVar(sys_->numVar), pmesh(fes_->GetParMesh()),
-    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), ML_inv(numVar * nDofs, numVar * nDofs), 
-    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false) //, GlD_to_TD(GLnDofs)
+    nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), 
+    ML_inv(numVar * nDofs, numVar * nDofs), ML_over_MLpdtMLs_m1(numVar * nDofs, numVar * nDofs), One_over_MLpdtMLs(numVar * nDofs, numVar * nDofs),
+    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false), 
+    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs) 
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -125,19 +127,70 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
         intorder = 0;
     }
 
+    Vector ones(nDofs);
+    ones = 1.0;
+
+    ParBilinearForm sigma_a(fes);
+    sigma_a.AddDomainIntegrator(new MassIntegrator(*sys->Sigma_0));
+    sigma_a.Assemble();
+    sigma_a.Finalize(0);
+    M_sigma_a = sigma_a.SpMat();
+    M_sigma_a.Mult(ones, Mlumped_sigma_a);
+    SyncVector(Mlumped_sigma_a);
+    HypreParMatrix *Ms_a_HP = sigma_a.ParallelAssemble();
+    Ms_a_HP->MergeDiagAndOffd(M_sigma_a);
+
+    ParBilinearForm sigma_aps(fes);
+    sigma_aps.AddDomainIntegrator(new MassIntegrator(*sys->Sigma_1));
+    sigma_aps.Assemble();
+    sigma_aps.Finalize(0);
+    M_sigma_aps = sigma_aps.SpMat();
+    M_sigma_aps.Mult(ones, Mlumped_sigma_aps);
+    SyncVector(Mlumped_sigma_aps);
+    HypreParMatrix *Ms_aps_HP = sigma_aps.ParallelAssemble();
+    Ms_aps_HP->MergeDiagAndOffd(M_sigma_aps);
+
+    ParLinearForm Source_LF(vfes);
+    Source_LF.AddDomainIntegrator(new VectorDomainLFIntegrator(*sys->q));
+    Source_LF.Assemble();
+    Source = Source_LF;
+    VSyncVector(Source);
+
     for(int i = 0; i < nDofs; i++)
     {
         for(int n = 0; n < numVar; n++)
-        {
+        {   
             ML_inv.Set(i + n * nDofs, i + n * nDofs, 1.0 / lumpedMassMatrix(i));
+            ML_over_MLpdtMLs_m1.Set(i + n * nDofs, i + n * nDofs,  1.0); // gets reassembled casue dependent on dt
+            One_over_MLpdtMLs.Set(i + n * nDofs, i + n * nDofs,  1.0); // gets reassembled casue dependent on dt
         }
     }
     ML_inv.Finalize(0);
+    ML_over_MLpdtMLs_m1.Finalize(0);
+    One_over_MLpdtMLs.Finalize(0);
 
 }
 
 void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 {
+    
+}
+
+void FE_Evolution::Set_dt_Update_MLsigma(const double dt_)
+{
+    dt = dt_;
+
+    for(int i = 0; i < nDofs; i++)
+    {
+        One_over_MLpdtMLs(i, i) =  1.0 / (lumpedMassMatrix(i) + dt * Mlumped_sigma_a(i) );
+        ML_over_MLpdtMLs_m1(i, i) = -1.0 + lumpedMassMatrix(i) / (lumpedMassMatrix(i) + dt * Mlumped_sigma_a(i));
+        
+        for(int n = 1; n < numVar; n++)
+        {
+            One_over_MLpdtMLs(i + n * nDofs, i + n * nDofs) = 1.0 / (lumpedMassMatrix(i) + dt * Mlumped_sigma_aps(i));
+            ML_over_MLpdtMLs_m1(i + n * nDofs, i + n * nDofs) = -1.0 + lumpedMassMatrix(i) / (lumpedMassMatrix(i) + dt * Mlumped_sigma_aps(i));
+        }
+    }
 
 }
 
@@ -209,6 +262,11 @@ void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
         {   
             continue;
         }
+        else 
+        {
+            continue;
+        }
+        //MFEM_ABORT(to_string(tr->Attribute))
 
         const IntegrationRule *ir = &IntRules.Get(tr->GetGeometryType(), intorder);
 

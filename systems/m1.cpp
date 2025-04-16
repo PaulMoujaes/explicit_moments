@@ -8,6 +8,7 @@ void InflowFunctionM1(const Vector &x, Vector &u);
 
 double sigma_a(const Vector &x);
 double sigma_aps(const Vector &x);
+void source(const Vector &x, Vector &q);
 
 bool Admissible_outside(Vector &u);
 bool solutionKnown_glob;
@@ -20,6 +21,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
 
     Sigma_0 = new FunctionCoefficient(sigma_a);
     Sigma_1 = new FunctionCoefficient(sigma_aps);
+    q = new VectorFunctionCoefficient(numVar, source);
 
     switch (configM1.benchmark)
     {   
@@ -34,6 +36,14 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         case 1:
         {
             problemName = "M1-Flash-Test";
+            solutionKnown = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
+            break;
+        }
+        case 2:
+        {
+            problemName = "M1-Homogeneous-Disk";
             solutionKnown = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
@@ -128,17 +138,12 @@ void M1::EvaluatePsi2(const Vector &u, DenseMatrix &psi2) const
     double chi = EvaluateEddingtonFactor(u);
     Vector v(dim);
     Evaluate_f_vec(u, v);
+    double psi1_sq = 0.0;
     for(int d = 0; d < dim; d++)
     {
+        psi1_sq += u(d+1) * u(d+1);
         psi2(d,d) = 0.5 * (1.0 - chi);
     }
-
-    /*
-    if(v.Norml2() > 1.0)
-    {
-        v /= v.Norml2();
-    }
-    //*/
 
     double f_sq = v.Norml2();
     f_sq *= f_sq; 
@@ -146,11 +151,19 @@ void M1::EvaluatePsi2(const Vector &u, DenseMatrix &psi2) const
     {
         for(int j = 0; j < dim; j++)
         {
-            psi2(i,j) += 0.5 * (3.0 * chi - 1.0) * v(i) * v(j) / (f_sq + 1e-15);
+            double a =  0.5 * (3.0 * chi - 1.0) * v(i) * v(j) / max(f_sq, 1e-100);
+            double b =  0.5 * (3.0 * chi - 1.0) * u(i+1) * u(j+1) / max(psi1_sq, 1e-100);
+
+            psi2(i,j) += b;
+            if(log10(abs(a-b)) > -15.0)
+            {
+                //u.Print();
+                cout << f_sq * u(0) * u(0)- psi1_sq << endl;
+            }
         }
     }
 
-    psi2 *= max(u(0), 1e-15);
+    psi2 *= u(0);
 }
 
 void M1::Evaluate_f_vec(const Vector &u, Vector &v) const
@@ -158,7 +171,7 @@ void M1::Evaluate_f_vec(const Vector &u, Vector &v) const
     v.SetSize(dim);
     for(int d = 0; d < dim; d++)
     {
-        v(d) = u(d+1) / max(u(0), 1e-15);
+        v(d) = u(d+1) / max(u(0), 1e-100);
     }
 }
 
@@ -170,7 +183,7 @@ double M1::Evaluate_f(const Vector &u) const
         f += u(d+1) * u(d+1);
     }
 
-    return sqrt(f) / max(u(0), 1e-15);
+    return sqrt(f) / max(u(0), 1e-100);
 }
 
 double M1::EvaluateEddingtonFactor(const Vector &u) const
@@ -185,7 +198,7 @@ double M1::EvaluateDerivativeEddingtonFactor(const Vector &u) const
 {
     double f = min(1.0 ,Evaluate_f(u));
 
-    return 2.0 * f /  sqrt((max(4.0 - 3.0 * f * f, 1e-15)));
+    return 2.0 * f /  sqrt(4.0 - 3.0 * f * f);
 }
 
 void M1::EvaluateFlux(const Vector &u, DenseMatrix &fluxEval) const
@@ -260,7 +273,7 @@ bool M1::Admissible(const Vector &u) const
 
 void M1::Adjust(Vector &u) const
 {
-    u(0) = max(u(0), 1e-15);
+    u(0) = max(u(0), 1e-100);
 
     Vector v(dim);
     for(int d = 0; d < dim; d++)
@@ -337,6 +350,7 @@ void AnalyticalSolutionM1(const Vector &x, Vector &u)
     {
         case 0:
         case 1:
+        case 2:
         {
             MFEM_ABORT("tbd")
             break;
@@ -379,6 +393,12 @@ void InitialConditionM1(const Vector &x, Vector &u)
             }
             break;
         }
+        case 2:
+        {
+            u = 0.0;
+            u(0) = 1e-10;
+            break;
+        }
 
         default: 
         MFEM_ABORT("No initial condition for this benchmark implemented!");        
@@ -392,6 +412,7 @@ void InflowFunctionM1(const Vector &x, Vector &u)
     {
         case 0:
         case 1:
+        case 2:
         { 
             InitialConditionM1(x,u);  
             break;      
@@ -479,9 +500,16 @@ double sigma_a(const Vector &x)
 { 
     switch (configM1.benchmark)
     {
-        case 0: 
+        case 0:
+        case 1:
         {
             return 0.0;
+        }
+        case 2:
+        {
+            Vector X = x;
+            X -= 5.0;
+            return  (X.Norml2() <= 1) * 10.0;
         }
 
         default: 
@@ -496,6 +524,8 @@ double sigma_aps(const Vector &x)
     switch (configM1.benchmark)
     {
         case 0: 
+        case 1:
+        case 2:
         {
             sigma_s = 0.0; break;
         }
@@ -504,6 +534,30 @@ double sigma_aps(const Vector &x)
         MFEM_ABORT("No sigma_aps for this benchmark!");
     }
     return sigma_s + sigma_a(x);
+}
+
+void source(const Vector &x, Vector &q)
+{
+    q = 0.0;
+
+    switch (configM1.benchmark)
+    {
+        case 0: 
+        case 1:
+        {
+            break;
+        }
+        case 2:
+        {
+            Vector X = x;
+            X -= 5.0;
+            q(0) = (X.Norml2() <= 1) * 1.0;
+            break;
+        }
+
+        default: 
+        MFEM_ABORT("No sigma_aps for this benchmark!");
+    }
 }
 
 

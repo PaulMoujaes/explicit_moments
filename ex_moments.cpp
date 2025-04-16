@@ -247,12 +247,13 @@ int main(int argc, char *argv[])
     }
     
     // 9. Choose the scheme via the fixed-point iteration
+    double dt_scale = 1.0;
     ODESolver *odesolver = NULL;;
     switch (ode_solver_type)
     {
         // Explicit methods
         case 1: odesolver = new ForwardEulerSolver; break;
-        case 2: odesolver = new RK2Solver(1.0); break;
+        case 2: odesolver = new RK2Solver(1.0); dt_scale = 0.5; break;
         case 3: odesolver = new RK3SSPSolver; break;
         default:
         if (Mpi::Root())
@@ -314,6 +315,7 @@ int main(int argc, char *argv[])
             dt = met->Compute_dt(u, CFL);
         }
         double dt_real = min(dt, t_final - t);
+        met->Set_dt_Update_MLsigma(dt_scale * dt_real);
         odesolver->Step(u, t, dt_real);
 
         done = (t >= t_final - 1e-8*dt);

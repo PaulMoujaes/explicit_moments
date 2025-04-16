@@ -41,7 +41,8 @@ class System
         ParGridFunction u0;
         bool solutionKnown;
 
-        mutable FunctionCoefficient *Sigma_0, *Sigma_1;
+        FunctionCoefficient *Sigma_0, *Sigma_1;
+        VectorFunctionCoefficient *q;
         mutable VectorFunctionCoefficient bdrCond;
         mutable DenseMatrix flux1, flux2;
         //mutable DenseTensor fluxJac1, fluxJac2;
