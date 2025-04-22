@@ -46,7 +46,15 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Homogeneous-Disk";
             solutionKnown = false;
             u0.ProjectCoefficient(ic);
-            MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
+            MFEM_VERIFY(dim == 2, "M1 Homogeneous Disk only implemented in 2D!");
+            break;
+        }
+        case 3:
+        {
+            problemName = "M1-Lattice-Problem";
+            solutionKnown = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 2, "M1 Lattice Problem only implemented in 2D!");
             break;
         }
 
@@ -248,7 +256,7 @@ double M1::GetWaveSpeed(const Vector &u, const Vector n) const
 bool M1::Admissible(const Vector &u) const
 {
     MFEM_VERIFY(!isnan(u(0)), "psi0 is nan!");
-    if(u(0) < 1e-15)
+    if(u(0) < 1e-100)
     {
         cout << "psi0 = " << u(0) << ", ";
         return false; 
@@ -351,6 +359,7 @@ void AnalyticalSolutionM1(const Vector &x, Vector &u)
         case 0:
         case 1:
         case 2:
+        case 3:
         {
             MFEM_ABORT("tbd")
             break;
@@ -394,6 +403,7 @@ void InitialConditionM1(const Vector &x, Vector &u)
             break;
         }
         case 2:
+        case 3:
         {
             u = 0.0;
             u(0) = 1e-10;
@@ -413,6 +423,7 @@ void InflowFunctionM1(const Vector &x, Vector &u)
         case 0:
         case 1:
         case 2:
+        case 3:
         { 
             InitialConditionM1(x,u);  
             break;      
@@ -511,6 +522,36 @@ double sigma_a(const Vector &x)
             X -= 5.0;
             return  (X.Norml2() <= 1) * 10.0;
         }
+        case 3:
+        {
+            double x0 = x(0);
+            double x1 = x(1);
+            bool absorbtion = 
+            // [1,2] x [1,2]
+            (x0 >= 1.0 && x0 <= 2.0 && x1 >= 1.0 && x1 <= 2.0) ||
+            // [1,2] x [3,4]
+            (x0 >= 1.0 && x0 <= 2.0 && x1 >= 3.0 && x1 <= 4.0) ||
+            // [1,2] x [5,6]
+            (x0 >= 1.0 && x0 <= 2.0 && x1 >= 5.0 && x1 <= 6.0) ||
+            // [2,3] x [2,3]
+            (x0 >= 2.0 && x0 <= 3.0 && x1 >= 2.0 && x1 <= 3.0) ||
+            // [2,3] x [4,5]
+            (x0 >= 2.0 && x0 <= 3.0 && x1 >= 4.0 && x1 <= 5.0) ||
+            // [3,4] x [1,2]
+            (x0 >= 3.0 && x0 <= 4.0 && x1 >= 1.0 && x1 <= 2.0) ||
+            // [4,5] x [2,3]
+            (x0 >= 4.0 && x0 <= 5.0 && x1 >= 2.0 && x1 <= 3.0) ||
+            // [4,5] x [4,5]
+            (x0 >= 4.0 && x0 <= 5.0 && x1 >= 4.0 && x1 <= 5.0) ||
+            // [5,6] x [1,2]
+            (x0 >= 5.0 && x0 <= 6.0 && x1 >= 1.0 && x1 <= 2.0) ||
+            // [5,6] x [3,4]
+            (x0 >= 5.0 && x0 <= 6.0 && x1 >= 3.0 && x1 <= 4.0) ||
+            // [5,6] x [5,6]
+            (x0 >= 5.0 && x0 <= 6.0 && x1 >= 5.0 && x1 <= 6.0);
+
+            return absorbtion * 10.0;
+        }
 
         default: 
         MFEM_ABORT("No sigma_a for this benchmark!");
@@ -528,6 +569,37 @@ double sigma_aps(const Vector &x)
         case 2:
         {
             sigma_s = 0.0; break;
+        }
+        case 3: 
+        {
+            double x0 = x(0);
+            double x1 = x(1);
+            bool absorbtion = 
+            // [1,2] x [1,2]
+            (x0 >= 1.0 && x0 <= 2.0 && x1 >= 1.0 && x1 <= 2.0) ||
+            // [1,2] x [3,4]
+            (x0 >= 1.0 && x0 <= 2.0 && x1 >= 3.0 && x1 <= 4.0) ||
+            // [1,2] x [5,6]
+            (x0 >= 1.0 && x0 <= 2.0 && x1 >= 5.0 && x1 <= 6.0) ||
+            // [2,3] x [2,3]
+            (x0 >= 2.0 && x0 <= 3.0 && x1 >= 2.0 && x1 <= 3.0) ||
+            // [2,3] x [4,5]
+            (x0 >= 2.0 && x0 <= 3.0 && x1 >= 4.0 && x1 <= 5.0) ||
+            // [3,4] x [1,2]
+            (x0 >= 3.0 && x0 <= 4.0 && x1 >= 1.0 && x1 <= 2.0) ||
+            // [4,5] x [2,3]
+            (x0 >= 4.0 && x0 <= 5.0 && x1 >= 2.0 && x1 <= 3.0) ||
+            // [4,5] x [4,5]
+            (x0 >= 4.0 && x0 <= 5.0 && x1 >= 4.0 && x1 <= 5.0) ||
+            // [5,6] x [1,2]
+            (x0 >= 5.0 && x0 <= 6.0 && x1 >= 1.0 && x1 <= 2.0) ||
+            // [5,6] x [3,4]
+            (x0 >= 5.0 && x0 <= 6.0 && x1 >= 3.0 && x1 <= 4.0) ||
+            // [5,6] x [5,6]
+            (x0 >= 5.0 && x0 <= 6.0 && x1 >= 5.0 && x1 <= 6.0);
+             
+            sigma_s = !absorbtion * 1.0;
+            break;
         }
 
         default: 
@@ -554,9 +626,14 @@ void source(const Vector &x, Vector &q)
             q(0) = (X.Norml2() <= 1) * 1.0;
             break;
         }
+        case 3:
+        {
+            q(0) = (x(0) >= 3.0 && x(0) <= 4.0 && x(1) >= 3.0 && x(1) <= 4.0) * 1.0;
+            break;
+        }
 
         default: 
-        MFEM_ABORT("No sigma_aps for this benchmark!");
+        MFEM_ABORT("No source term for this benchmark!");
     }
 }
 
