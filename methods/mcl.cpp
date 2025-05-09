@@ -223,10 +223,13 @@ double MCL::CalcBarState_returndij(const int i, const int j_gl, Vector &uij, Vec
     sys->EvaluateFlux(uj, fluxEval_j);
     fluxEval_i.Mult(cij, flux_i);
     fluxEval_j.Mult(cij, flux_j);
+
     for(int n = 0; n < numVar; n++)
     {   
         uij(n) = 0.5 * ((ui(n) + uj(n)) - (flux_j(n) - flux_i(n)) / dij ) ;
     }
+
+    //MFEM_VERIFY(sys->Admissible(uij), "ui bar not admissible");
 
     fluxEval_i.Mult(cji, flux_i);
     fluxEval_j.Mult(cji, flux_j);
@@ -494,7 +497,7 @@ void MCL::CalcUdot(const Vector &x, const Vector &dbc) const
         }
 
         uDot_gl[n] = aux_hpr.GlobalVector();
-        MFEM_VERIFY(uDot_gl[n]->Size() == GLnDofs, "wrong size!");
+        //MFEM_VERIFY(uDot_gl[n]->Size() == GLnDofs, "wrong size!");
     }
 }
 

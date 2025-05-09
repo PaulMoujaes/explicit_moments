@@ -193,3 +193,17 @@
 47.9695 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn MCLcomp -ps 100 
 2835.25 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn MCLcomp -ps 100 -i 
 8964.62 seconds needed for the run: ./ex_moments -sys 0 -b 2 -m meshes/inline-4quad_10.mesh -o 1 -vis 1 -r 8 -fe 2 -ode 2 -ft 3 -cfl 0.5 -vn MCLcomp -ps 200 -i 
+23.3964 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn MCLcomp 
+0.675246 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-wall-right-wall.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn MCLcomp 
+0.867513 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-wall-right-wall.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn MCLcomp -ps 100 
+29.4233 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-wall-right-wall.mesh -o 1 -vis 100 -r 10 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn MCLcomp -ps 200 
+108.719 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-wall-right-wall.mesh -o 1 -vis 100 -r 11 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn MCLcomp -ps 500 
+117.124 seconds needed for the run: ./ex_moments -sys 0 -b 5 -m meshes/left-wall-right-wall.mesh -o 1 -vis 100 -r 11 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn MCLcomp -ps 500 
+7.34873 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-wall-right-wall.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-walltest -ps 50 
+7.38405 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-wall-right-wall.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-walltest -ps 50 
+7.91229 seconds needed for the run: ./ex_moments -sys 0 -b 6 -m meshes/left-wall-right-wall.mesh -o 1 -vis 10 -r 8 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-walltest -ps 50 
+2.96441 seconds needed for the run: ./ex_moments -sys 0 -b 6 -m meshes/left-wall-right-wall.mesh -o 1 -vis 10 -r 8 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn MCLcomp-walltest -ps 50 
+8.60573 seconds needed for the run: ./ex_moments -sys 0 -b 6 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 8 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-Bone -ps 50 
+8.17157 seconds needed for the run: ./ex_moments -sys 0 -b 6 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 8 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-Bone -ps 50 
+118.195 seconds needed for the run: ./ex_moments -sys 0 -b 6 -m meshes/L-Inflow-TBR-Outflow.mesh -o 1 -vis 10 -r 5 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-Bone -ps 50 
+113.046 seconds needed for the run: ./ex_moments -sys 0 -b 6 -m meshes/L-Inflow-TBR-Outflow.mesh -o 1 -vis 10 -r 5 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MCLcomp-Bone -ps 50 

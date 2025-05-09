@@ -262,10 +262,10 @@ void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
         {   
             continue;
         }
-        else 
-        {
-            continue;
-        }
+        //else 
+        //{
+        //    continue;
+        //}
         //MFEM_ABORT(to_string(tr->Attribute))
 
         const IntegrationRule *ir = &IntRules.Get(tr->GetGeometryType(), intorder);

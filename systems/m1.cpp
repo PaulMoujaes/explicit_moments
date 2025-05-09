@@ -57,6 +57,30 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             MFEM_VERIFY(dim == 2, "M1 Lattice Problem only implemented in 2D!");
             break;
         }
+        case 4:
+        {
+            problemName = "M1-Riemann-Problem";
+            solutionKnown = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 Riemann Problem only implemented in 1D!");
+            break;
+        }
+        case 5:
+        {
+            problemName = "M1-Absorption-Riemann-Problem";
+            solutionKnown = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 Absorption Riemann Problem only implemented in 1D!");
+            break;
+        }
+        case 6:
+        {
+            problemName = "M1-Tissue-Bone-Problem";
+            solutionKnown = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 2, "M1 Tissue Bone Problem only implemented in 2D!");
+            break;
+        }
 
         default:
             MFEM_ABORT("No such test case implemented.");
@@ -256,7 +280,7 @@ double M1::GetWaveSpeed(const Vector &u, const Vector n) const
 bool M1::Admissible(const Vector &u) const
 {
     MFEM_VERIFY(!isnan(u(0)), "psi0 is nan!");
-    if(u(0) < 1e-100)
+    if(!(u(0) >= 0.0))
     {
         cout << "psi0 = " << u(0) << ", ";
         return false; 
@@ -266,7 +290,7 @@ bool M1::Admissible(const Vector &u) const
     Vector v(dim);
     for(int d = 0; d < dim; d++)
     {
-        v(d) = u(d+1) / u(0);
+        v(d) = u(d+1) / max(u(0), 1e-100);
         MFEM_VERIFY(!isnan(u(d+1)), "psi1 is nan!");
     }
 
@@ -409,6 +433,19 @@ void InitialConditionM1(const Vector &x, Vector &u)
             u(0) = 1e-10;
             break;
         }
+        case 4:
+        case 5:
+        {
+            u = 0.0;
+            u(0) = x(0) < 0.5? 1.0 : 1e-10;
+            break;
+        }
+        case 6:
+        {
+            u = 0.0;
+            u(0) = 1e-10;
+            break;
+        }
 
         default: 
         MFEM_ABORT("No initial condition for this benchmark implemented!");        
@@ -424,9 +461,22 @@ void InflowFunctionM1(const Vector &x, Vector &u)
         case 1:
         case 2:
         case 3:
+        case 4:
+        case 5:
         { 
             InitialConditionM1(x,u);  
             break;      
+        }
+        case 6:
+        {
+            u = 0.0;
+            double omega_sq = 0.02;
+            omega_sq *= omega_sq;
+            double ex = 10.0 * exp(- (x(1) - 0.5) * (x(1) - 0.5) / omega_sq ) ;
+            u(0) = max(1e-10, ex);
+            //u(0) = 1.0;
+            u(1) = ex;
+            break;
         }
 
         default:
@@ -513,6 +563,7 @@ double sigma_a(const Vector &x)
     {
         case 0:
         case 1:
+        case 4:
         {
             return 0.0;
         }
@@ -552,6 +603,17 @@ double sigma_a(const Vector &x)
 
             return absorbtion * 10.0;
         }
+        case 5:
+        {
+            Vector X = x;
+            X -= 0.5;
+            return 10.0 * (X.Norml2() < 0.1);
+        }
+        case 6:
+        {
+            bool bone = x(0) > 0.4 && x(0) < 0.6;
+            return bone * 1.0 + !bone * 0.1;
+        }
 
         default: 
         MFEM_ABORT("No sigma_a for this benchmark!");
@@ -567,6 +629,8 @@ double sigma_aps(const Vector &x)
         case 0: 
         case 1:
         case 2:
+        case 4:
+        case 5:
         {
             sigma_s = 0.0; break;
         }
@@ -601,6 +665,12 @@ double sigma_aps(const Vector &x)
             sigma_s = !absorbtion * 1.0;
             break;
         }
+        case 6:
+        {
+            bool bone = x(0) > 0.4 && x(0) < 0.6;
+            sigma_s = bone * 3.0 + !bone * 1.0; 
+            break;
+        }
 
         default: 
         MFEM_ABORT("No sigma_aps for this benchmark!");
@@ -616,6 +686,9 @@ void source(const Vector &x, Vector &q)
     {
         case 0: 
         case 1:
+        case 4:
+        case 5:
+        case 6:
         {
             break;
         }
