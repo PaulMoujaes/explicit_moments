@@ -306,6 +306,7 @@ int main(int argc, char *argv[])
     auto start = high_resolution_clock::now();
 
     double residual;
+    double dt_real;
     // 11. Perform time integration.
     for (int ti = 0; !done;)
     {
@@ -315,14 +316,21 @@ int main(int argc, char *argv[])
             dt = met->Compute_dt(u, CFL);
         }
         met->uOld = u;
-        double dt_real = min(dt, t_final - t);
+        if(!sys->steadyState)
+        {
+            dt_real = min(dt, t_final - t);
+        }
+        else
+        {
+            dt_real = dt;
+        }
         met->Set_dt_Update_MLsigma(dt_scale * dt_real);
         odesolver->Step(u, t, dt_real);
         
         if(sys->steadyState)
         {
             residual = met->ComputeSteadyStateResidual_quick(met->uOld, u, dt);
-            done = (residual < 1e-8);
+            done = (residual < 1e-12);
         }
         else 
         {

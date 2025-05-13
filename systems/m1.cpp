@@ -97,6 +97,15 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             MFEM_VERIFY(dim == 1, "M1 Propagating Particles Problem only implemented in 1D!");
             break;
         }
+        case 8:
+        {
+            problemName = "M1-Propagating-Particles-Absoption-Problem";
+            solutionKnown = false;
+            steadyState = true;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 Propagating Particles Absoption Problem only implemented in 1D!");
+            break;
+        }
 
         default:
             MFEM_ABORT("No such test case implemented.");
@@ -468,6 +477,7 @@ void InitialConditionM1(const Vector &x, Vector &u)
             break;
         }
         case 7:
+        case 8:
         {
             double eps = 1e-15;
             u = 0.0;
@@ -512,6 +522,7 @@ void InflowFunctionM1(const Vector &x, Vector &u)
             break;
         }
         case 7:
+        case 8:
         {
             double eps = 1e-15;
             u(0) = 1.0;
@@ -654,6 +665,10 @@ double sigma_a(const Vector &x)
 
             return absorbtion * 50.0;
         }
+        case 8:
+        {
+            return 100.0 * (x(0) > 0.5);
+        }
 
         default: 
         MFEM_ABORT("No sigma_a for this benchmark!");
@@ -673,6 +688,7 @@ double sigma_aps(const Vector &x)
         case 5:
         case 6:
         case 7:
+        case 8:
         {
             sigma_s = 0.0; break;
         }
@@ -726,6 +742,7 @@ void source(const Vector &x, Vector &q)
         case 5:
         case 6:
         case 7:
+        case 8:
         {
             break;
         }

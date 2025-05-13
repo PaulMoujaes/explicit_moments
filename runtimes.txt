@@ -253,3 +253,18 @@
 1.19193 seconds needed for the run: ./ex_moments -sys 0 -b 7 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn RM 
 1.2078 seconds needed for the run: ./ex_moments -sys 0 -b 7 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn RM 
 0.830859 seconds needed for the run: ./ex_moments -sys 0 -b 7 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn RM 
+0.484923 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 0.6 -cfl 0.5 -vn RM 
+1.33535 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 0.6 -cfl 0.5 -vn RMA -ps 20 
+0.775827 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 0.6 -cfl 0.5 -vn RMA -ps 100 
+0.787607 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 0.6 -cfl 0.5 -vn RMA -ps 100 
+0.717818 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 0.6 -cfl 0.5 -vn RMA -ps 100 
+0.744124 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 0.6 -cfl 0.5 -vn RMA -ps 100 
+3.19353 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 10. -cfl 0.5 -vn RMA -ps 100 
+1.32458 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 100 
+3.12812 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 100 
+2.22148 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 100 
+12.1889 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 100 
+11.9689 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 100 
+41.3191 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
+58.8054 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
+1.73383 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
