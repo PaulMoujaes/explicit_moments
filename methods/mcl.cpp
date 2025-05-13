@@ -49,6 +49,7 @@ void MCL::Mult(const Vector &x, Vector &y) const
 {
     MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     UpdateGlobalVector(x);
+    aux1 = 0.0;
     Expbc(x, aux1);
     ComputeAntiDiffusiveFluxes(x, aux1, adf);
 

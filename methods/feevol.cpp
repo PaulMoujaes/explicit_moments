@@ -11,7 +11,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), 
     ML_inv(numVar * nDofs, numVar * nDofs), ML_over_MLpdtMLs_m1(numVar * nDofs, numVar * nDofs), One_over_MLpdtMLs(numVar * nDofs, numVar * nDofs),
     GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false), 
-    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs) 
+    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -174,6 +174,18 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 {
     
+}
+
+double FE_Evolution::ComputeSteadyStateResidual_quick(const ParGridFunction &uOld, const ParGridFunction &u, const double dt) const
+{
+    res_gf = u;
+    res_gf -= uOld;
+    double odt = 1.0 / dt;
+    res_gf *= odt;
+
+    VectorFunctionCoefficient zero(numVar, zero_numVar);
+    steadyStateResidual = res_gf.ComputeL2Error(zero); // res_gf.ComputeMaxError(zero);
+    return steadyStateResidual;
 }
 
 void FE_Evolution::Set_dt_Update_MLsigma(const double dt_)

@@ -35,9 +35,8 @@ class FE_Evolution : public TimeDependentOperator
         mutable DenseMatrix fluxEval_i, fluxEval_j;
         mutable Vector flux_i, flux_j;
         mutable Vector cij, cji;
-        mutable Vector uOld;
         mutable double steadyStateResidual;
-        mutable ParGridFunction res_gf;
+        mutable ParGridFunction res_gf, uOld;
         DofInfo &dofs;
         mutable Array <int> vdofs;
         //Array <int> GlD_to_TD;
@@ -73,7 +72,7 @@ class FE_Evolution : public TimeDependentOperator
         virtual void SyncVector_Min(Vector &x) const;
         virtual void SyncVector_Max(Vector &x) const;
         virtual void VSyncVector(Vector &x) const;
-        
+        virtual double ComputeSteadyStateResidual_quick(const ParGridFunction &uOld, const ParGridFunction &u, const double dt) const;
         /*
         virtual double ComputeSteadyStateResidual(const Vector &x, ParGridFunction &res_gf) const;
         virtual void ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res_gf) const = 0;

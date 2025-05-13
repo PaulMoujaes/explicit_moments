@@ -101,9 +101,10 @@ bool System::GloballyAdmissible(const Vector &x) const
         {
             ui(n) = x(i + n * nDofs);
         }
-        
         if(!Admissible(ui))
-        {
+        {   
+            cout << i << endl;
+            //ui.Print();
             cout << "NICHT IDP " << endl;
             return false;
         }

@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
     tic_toc.Start();
     auto start = high_resolution_clock::now();
 
-
+    double residual;
     // 11. Perform time integration.
     for (int ti = 0; !done;)
     {
@@ -314,11 +314,20 @@ int main(int argc, char *argv[])
         {
             dt = met->Compute_dt(u, CFL);
         }
+        met->uOld = u;
         double dt_real = min(dt, t_final - t);
         met->Set_dt_Update_MLsigma(dt_scale * dt_real);
         odesolver->Step(u, t, dt_real);
-
-        done = (t >= t_final - 1e-8*dt);
+        
+        if(sys->steadyState)
+        {
+            residual = met->ComputeSteadyStateResidual_quick(met->uOld, u, dt);
+            done = (residual < 1e-8);
+        }
+        else 
+        {
+            done = (t >= t_final - 1e-8*dt);
+        }
 
         double min_loc = main.Min();
         double max_loc = main.Max();
@@ -340,8 +349,14 @@ int main(int argc, char *argv[])
             int hrs = mins / 60;
             mins = mins % 60;
 
-
-            cout << "Time step: " << ti << ", Time: " << t << ", main in [" << min_glob << ", "<< max_glob << "], Remaining: " << hrs << "hrs " << mins << "mins " << secs << "secs." << '\n';
+            if(sys->steadyState)
+            {
+                cout << "Time step: " << ti << ", Time: " << t << ", main in [" << min_glob << ", "<< max_glob << "], Residual = " << residual << '\n';
+            }
+            else
+            {
+                cout << "Time step: " << ti << ", Time: " << t << ", main in [" << min_glob << ", "<< max_glob << "], Remaining: " << hrs << "hrs " << mins << "mins " << secs << "secs." << '\n';
+            }
 
             start = high_resolution_clock::now();
         }
@@ -389,7 +404,10 @@ int main(int argc, char *argv[])
     }
 
     // 13. Compute solution errors and additional values.
-    double domainSize = lumpedMassMatrix.Sum();
+    double domainSize_loc = lumpedMassMatrix.Sum();
+    double domainSize = 0.0;
+    MPI_Allreduce(&domainSize_loc, &domainSize, 1, MPI_DOUBLE, MPI_SUM,
+              MPI_COMM_WORLD);
 
     if (sys->solutionKnown)
     {

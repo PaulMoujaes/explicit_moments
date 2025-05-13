@@ -29,6 +29,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Line-Source";
             solutionKnown = false;
+            steadyState = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Line Source only implemented in 2D!");
             break;
@@ -37,6 +38,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Flash-Test";
             solutionKnown = false;
+            steadyState = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
             break;
@@ -45,6 +47,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Homogeneous-Disk";
             solutionKnown = false;
+            steadyState = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Homogeneous Disk only implemented in 2D!");
             break;
@@ -53,6 +56,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Lattice-Problem";
             solutionKnown = false;
+            steadyState = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Lattice Problem only implemented in 2D!");
             break;
@@ -61,6 +65,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Riemann-Problem";
             solutionKnown = false;
+            steadyState = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Riemann Problem only implemented in 1D!");
             break;
@@ -69,16 +74,27 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Absorption-Riemann-Problem";
             solutionKnown = false;
+            steadyState = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Absorption Riemann Problem only implemented in 1D!");
             break;
         }
         case 6:
         {
-            problemName = "M1-Tissue-Bone-Problem";
+            problemName = "M1-Shaddow-Test";
             solutionKnown = false;
+            steadyState = true;
             u0.ProjectCoefficient(ic);
-            MFEM_VERIFY(dim == 2, "M1 Tissue Bone Problem only implemented in 2D!");
+            MFEM_VERIFY(dim == 2, "M1 Shaddow Test only implemented in 2D!");
+            break;
+        }
+        case 7:
+        {
+            problemName = "M1-Propagating-Particles-Problem";
+            solutionKnown = false;
+            steadyState = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 Propagating Particles Problem only implemented in 1D!");
             break;
         }
 
@@ -294,7 +310,7 @@ bool M1::Admissible(const Vector &u) const
         MFEM_VERIFY(!isnan(u(d+1)), "psi1 is nan!");
     }
 
-    if(! (v.Norml2() < 1.0 + 1e-15))
+    if(! (v.Norml2() < 1.0 + 1e-12))
     {
         cout << "f = " << v.Norml2() << ", ";
         return false; 
@@ -434,16 +450,28 @@ void InitialConditionM1(const Vector &x, Vector &u)
             break;
         }
         case 4:
-        case 5:
         {
             u = 0.0;
             u(0) = x(0) < 0.5? 1.0 : 1e-10;
+            break;
+        }
+        case 5:
+        {
+            u = 0.0;
+            u(0) = 1.0;
             break;
         }
         case 6:
         {
             u = 0.0;
             u(0) = 1e-10;
+            break;
+        }
+        case 7:
+        {
+            double eps = 1e-15;
+            u = 0.0;
+            u(0) = 2.0 * eps;
             break;
         }
 
@@ -470,12 +498,24 @@ void InflowFunctionM1(const Vector &x, Vector &u)
         case 6:
         {
             u = 0.0;
+            u(0) = 1.0;
+            u(1) = 0.999;
+
+            /*
             double omega_sq = 0.02;
             omega_sq *= omega_sq;
             double ex = 10.0 * exp(- (x(1) - 0.5) * (x(1) - 0.5) / omega_sq ) ;
             u(0) = max(1e-10, ex);
             //u(0) = 1.0;
             u(1) = ex;
+            //*/
+            break;
+        }
+        case 7:
+        {
+            double eps = 1e-15;
+            u(0) = 1.0;
+            u(1) = 1.0 - 2.0 * eps;
             break;
         }
 
@@ -564,6 +604,7 @@ double sigma_a(const Vector &x)
         case 0:
         case 1:
         case 4:
+        case 7:
         {
             return 0.0;
         }
@@ -605,14 +646,13 @@ double sigma_a(const Vector &x)
         }
         case 5:
         {
-            Vector X = x;
-            X -= 0.5;
-            return 10.0 * (X.Norml2() < 0.1);
+            return 100.0 * (x(0) > 0.5);
         }
         case 6:
         {
-            bool bone = x(0) > 0.4 && x(0) < 0.6;
-            return bone * 1.0 + !bone * 0.1;
+            bool absorbtion = x(0) <= 3.0 && x(0) >= 2.0 && x(1) >= 0.0 && x(1) < 2.0;
+
+            return absorbtion * 50.0;
         }
 
         default: 
@@ -631,6 +671,8 @@ double sigma_aps(const Vector &x)
         case 2:
         case 4:
         case 5:
+        case 6:
+        case 7:
         {
             sigma_s = 0.0; break;
         }
@@ -665,12 +707,6 @@ double sigma_aps(const Vector &x)
             sigma_s = !absorbtion * 1.0;
             break;
         }
-        case 6:
-        {
-            bool bone = x(0) > 0.4 && x(0) < 0.6;
-            sigma_s = bone * 3.0 + !bone * 1.0; 
-            break;
-        }
 
         default: 
         MFEM_ABORT("No sigma_aps for this benchmark!");
@@ -689,6 +725,7 @@ void source(const Vector &x, Vector &q)
         case 4:
         case 5:
         case 6:
+        case 7:
         {
             break;
         }

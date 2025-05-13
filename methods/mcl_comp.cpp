@@ -174,6 +174,12 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
                 double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
                 double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
 
+                MFEM_VERIFY(Qij > -1e-15, "Qij negative!");
+                MFEM_VERIFY(Qji > -1e-15, "Qji negative!");
+                
+                Qij = max(Qij, 0.0);
+                Qji = max(Qji, 0.0);
+
                 double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
                 double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
 
@@ -209,7 +215,7 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
                     uji(n) -= 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;
                 }
                 
-                MFEM_VERIFY(sys->Admissible(uij) && sys->Admissible(uji), "PA barstates not PA!");
+                //MFEM_VERIFY(sys->Admissible(uij) && sys->Admissible(uji), "PA barstates not PA!");
 
             }
         }

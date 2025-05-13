@@ -39,7 +39,7 @@ class System
         const int numVar, dim;
         ParFiniteElementSpace *vfes;
         ParGridFunction u0;
-        bool solutionKnown;
+        bool solutionKnown, steadyState;
 
         FunctionCoefficient *Sigma_0, *Sigma_1;
         VectorFunctionCoefficient *q;
