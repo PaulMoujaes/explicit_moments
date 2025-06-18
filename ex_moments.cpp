@@ -330,7 +330,7 @@ int main(int argc, char *argv[])
         if(sys->steadyState)
         {
             residual = met->ComputeSteadyStateResidual_quick(met->uOld, u, dt);
-            done = (residual < 1e-12);
+            done = (residual < 1e-8);
         }
         else 
         {

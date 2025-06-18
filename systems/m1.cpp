@@ -106,6 +106,15 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             MFEM_VERIFY(dim == 1, "M1 Propagating Particles Absoption Problem only implemented in 1D!");
             break;
         }
+        case 9:
+        {
+            problemName = "M1-Two-Beams-Problem";
+            solutionKnown = false;
+            steadyState = true;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 Two Beams Problem only implemented in 1D!");
+            break;
+        }
 
         default:
             MFEM_ABORT("No such test case implemented.");
@@ -318,13 +327,11 @@ bool M1::Admissible(const Vector &u) const
         v(d) = u(d+1) / max(u(0), 1e-100);
         MFEM_VERIFY(!isnan(u(d+1)), "psi1 is nan!");
     }
-
-    if(! (v.Norml2() < 1.0 + 1e-12))
+    if(! (v.Norml2() < 1.0 ))
     {
         cout << "f = " << v.Norml2() << ", ";
         return false; 
     }
-
     return true;
 }
 
@@ -484,6 +491,13 @@ void InitialConditionM1(const Vector &x, Vector &u)
             u(0) = 2.0 * eps;
             break;
         }
+        case 9:
+        {
+            u(0) = 1.0;
+            u(1) = 
+            0.0;
+            break;
+        }
 
         default: 
         MFEM_ABORT("No initial condition for this benchmark implemented!");        
@@ -527,6 +541,19 @@ void InflowFunctionM1(const Vector &x, Vector &u)
             double eps = 1e-15;
             u(0) = 1.0;
             u(1) = 1.0 - 2.0 * eps;
+            break;
+        }
+        case 9:
+        {
+            u(0) = 1.0;
+            if(x(0) > 0.5)
+            {
+                u(1) = -0.9999;
+            }
+            else 
+            {
+                u(1) = 0.9999;
+            }
             break;
         }
 
@@ -657,7 +684,7 @@ double sigma_a(const Vector &x)
         }
         case 5:
         {
-            return 100.0 * (x(0) > 0.5);
+            return 50.0 * (x(0) > 0.5);
         }
         case 6:
         {
@@ -667,7 +694,11 @@ double sigma_a(const Vector &x)
         }
         case 8:
         {
-            return 100.0 * (x(0) > 0.5);
+            return max(0.0, 100.0 *  (x(0)-0.1)) ; //(x(0) > 0.5);
+        }
+        case 9:
+        {
+            return 4.0; //(x(0) > 0.5);
         }
 
         default: 
@@ -689,6 +720,7 @@ double sigma_aps(const Vector &x)
         case 6:
         case 7:
         case 8:
+        case 9:
         {
             sigma_s = 0.0; break;
         }
@@ -743,6 +775,7 @@ void source(const Vector &x, Vector &q)
         case 6:
         case 7:
         case 8:
+        case 9:
         {
             break;
         }

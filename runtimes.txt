@@ -268,3 +268,30 @@
 41.3191 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
 58.8054 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
 1.73383 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
+15.5218 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 0 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
+12.0974 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 0 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
+15.4153 seconds needed for the run: ./ex_moments -sys 0 -b 8 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 10 -fe 0 -ode 1 -ft 1. -cfl 0.5 -vn RMA -ps 1000 
+4.17015 seconds needed for the run: ./ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 0 -ode 2 -ft 3.0 -cfl 0.5 -vn 2B -ps 1000 
+4.27478 seconds needed for the run: ./ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 0 -ode 2 -ft 3.0 -cfl 0.5 -vn 2B -ps 1000 
+11.9189 seconds needed for the run: ./ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 3.0 -cfl 0.5 -vn 2B -ps 1000 
+12.2225 seconds needed for the run: ./ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 3.0 -cfl 0.5 -vn 2B 
+11.3459 seconds needed for the run: ./ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 3.0 -cfl 0.5 -vn 2B -i 
+0.681131 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn RM -i 
+2.19139 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn RM -i 
+2.23398 seconds needed for the run: ./ex_moments -sys 0 -b 5 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn ARM -i 
+3.39898 seconds needed for the run: ./ex_moments -sys 0 -b 5 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn ARM -i 
+3.52029 seconds needed for the run: ./ex_moments -sys 0 -b 5 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn ARM -i -ps 100 
+3.51041 seconds needed for the run: ./ex_moments -sys 0 -b 5 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn ARM -i -ps 100 
+3.44046 seconds needed for the run: ./ex_moments -sys 0 -b 5 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn ARM -i -ps 100 
+1.17951 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.6 -cfl 0.5 -vn RM -i -ps 100 
+0.854219 seconds needed for the run: ./ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 0.5 -vn RM -i -ps 100 
+11.9729 seconds needed for the run: ./ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 0.4 -cfl 0.5 -vn 2B -i -ps 1000 
+60491.8 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 1 -ft 0.4 -cfl 0.5 -vn steadystate -ps 500 -i 
+12.5441 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 3 -fe 2 -ode 1 -ft 0.4 -cfl 1.0 -vn steadystate -ps 30 
+0.0576649 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 3 -fe 2 -ode 1 -ft 0.4 -cfl 1.0 -vn steadystate -ps 30 
+0.0409876 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 3 -fe 2 -ode 1 -ft 0.4 -cfl 1.0 -vn steadystate 
+0.0800883 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 3 -fe 2 -ode 1 -ft 0.4 -cfl 1.0 -vn steadystate 
+158.298 seconds needed for the run: ./ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 0.4 -cfl 1.0 -vn steadystate 
+29.406 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 10 -r 5 -fe 2 -ode 2 -ft 6 -cfl 0.5 -vn EchtkleineCheck -ps 50 
+1883.97 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 6 -cfl 0.5 -vn EchtkleineCheck -ps 50 
+1765.88 seconds needed for the run: ./ex_moments -sys 0 -b 1 -m meshes/inline-4quad_20.mesh -o 1 -vis 10 -r 7 -fe 2 -ode 2 -ft 6 -cfl 0.5 -vn EchtkleineCheck -ps 50 

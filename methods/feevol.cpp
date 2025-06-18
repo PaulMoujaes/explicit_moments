@@ -274,6 +274,7 @@ void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
         {   
             continue;
         }
+        continue;
         //else 
         //{
         //    continue;
