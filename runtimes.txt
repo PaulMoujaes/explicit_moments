@@ -446,3 +446,10 @@
 24.2275 seconds needed for the run: ex_moments -sys 0 -b 11 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 10 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn Testitest_minus_LO -ps 1000 
 1.6089 seconds needed for the run: ex_moments -sys 0 -b 11 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn Testitest 
 1.84785 seconds needed for the run: ex_moments -sys 0 -b 11 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 1 -ode 2 -ft 1.0 -cfl 0.5 -vn Testitest 
+14.5959 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 5 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn Testitest -ps 1000 
+47.5373 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 5 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn Testitest -ps 1000 
+46.6011 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 10 -r 5 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn Testitest -ps 1000 
+43.7105 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 3 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn Testitest 
+2022.54 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 5 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn Testitest -ps 1000 
+24.9488 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 3 -fe 1 -ode 1 -ft 3.2 -cfl 0.99 -vn Testitest 
+25.5876 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 3 -fe 1 -ode 1 -ft 3.2 -cfl 0.99 -vn Testitest -io test 

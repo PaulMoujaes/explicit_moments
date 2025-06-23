@@ -39,7 +39,7 @@ class System
         const int numVar, dim;
         ParFiniteElementSpace *vfes;
         ParGridFunction u0;
-        bool solutionKnown, steadyState, timedependentSource, timedependentbdr;
+        bool solutionKnown, steadyState, timedependentSource, timedependentbdr, bdrcon_needed;
 
         FunctionCoefficient *Sigma_0, *Sigma_1;
         VectorFunctionCoefficient *q;

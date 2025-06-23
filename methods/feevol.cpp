@@ -178,14 +178,26 @@ void FE_Evolution::ComputeLOTimeDerivatives(const Vector &x, Vector &y) const
 }
 
 double FE_Evolution::ComputeSteadyStateResidual_quick(const ParGridFunction &uOld, const ParGridFunction &u, const double dt) const
-{
+{   
+    /*
     res_gf = u;
     res_gf -= uOld;
     double odt = 1.0 / dt;
     res_gf *= odt;
 
+    steadyStateResidual = res_gf.ComputeL2Error(zero);
+    if(Mpi::Root())
+    {
+        cout << steadyStateResidual << endl; // res_gf.ComputeMaxError(zero);
+    }
+    //*/
+
+
     VectorFunctionCoefficient zero(numVar, zero_numVar);
+    ComputeSteadyStateResidual_gf(u, res_gf);
+    //VectorFunctionCoefficient zero(numVar, zero_numVar);
     steadyStateResidual = res_gf.ComputeL2Error(zero); // res_gf.ComputeMaxError(zero);
+
     return steadyStateResidual;
 }
 
@@ -262,9 +274,13 @@ double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
 
 void FE_Evolution::Expbc(const Vector &x, Vector &bc) const
 {
+    bc = 0.0;
+    if(!sys->bdrcon_needed)
+    {   
+        return;
+    }
     FaceElementTransformations *tr = NULL;
     Vector nor(dim);
-    bc = 0.0;
     for(int b = 0; b < fes->GetNBE(); b++)
     { 
         tr = pmesh->GetBdrFaceTransformations(b);

@@ -21,7 +21,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
         sys->bdrCond.SetTime(t);
         inflow.ProjectCoefficient(sys->bdrCond);
     }
-    
+
     MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     Expbc(x, aux1);
 
@@ -95,38 +95,37 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 
 void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const 
 {  
-    Mult(x, res);
-    
-    /* 
+    UpdateGlobalVector(x);
+    aux1 = 0.0;
     Expbc(x, aux1);
 
     auto I = dofs.I;
     auto J = dofs.J;
     for(int i = 0; i < nDofs; i++)
     {
+        int i_td = fes->GetLocalTDofNumber(i);
+        if(i_td == -1) {continue;}
+        int i_gl = fes->GetGlobalTDofNumber(i);
+
         for(int n = 0; n < numVar; n++)
-        {
+        {   
             ui(n) = x(i + n * nDofs);
         }
 
-        for(int k = I[i]; k < I[i+1]; k++)
+        for(int k = I[i_td]; k < I[i_td+1]; k++)
         {
-            int j = J[k];
-
-            if(j == i)
-            {
-                continue;
-            }
+            int j_gl = J[k];
+            if(j_gl == i_gl){continue;}
 
             for(int n = 0; n < numVar; n++)
-            {
-                uj(n) = x(j + n * nDofs);
+            {   
+                uj(n) = x_gl[n]->Elem(j_gl);
             }
 
             for(int d = 0; d < dim; d++)
-            {
-                cij(d) = Convection(i, j + d * nDofs);
-                cji(d) = Convection(j, i + d * nDofs);
+            {   
+                cij(d) = C[d]->Elem(i_td,j_gl);
+                cji(d) = CT[d]->Elem(i_td,j_gl);
             }
 
             double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
@@ -142,8 +141,14 @@ void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &r
                 aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
             }
         }
+        // add source term 
+        for(int n = 0; n < numVar; n++)
+        {
+            aux1(i + n * nDofs) += Source(i + n * nDofs) - (n == 0) * Mlumped_sigma_a(i) * ui(n) - (n > 0) * Mlumped_sigma_aps(i) * ui(n);
+        }
     }
+    updated = false;
 
+    VSyncVector(aux1);
     ML_inv.Mult(aux1, res);
-    //*/
 }

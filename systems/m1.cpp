@@ -32,6 +32,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Line Source only implemented in 2D!");
             break;
@@ -43,6 +44,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
             break;
@@ -54,6 +56,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Homogeneous Disk only implemented in 2D!");
             break;
@@ -62,9 +65,10 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Lattice-Problem";
             solutionKnown = false;
-            steadyState = false;
+            steadyState = true;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Lattice Problem only implemented in 2D!");
             break;
@@ -76,6 +80,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Riemann Problem only implemented in 1D!");
             break;
@@ -87,6 +92,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Absorption Riemann Problem only implemented in 1D!");
             break;
@@ -98,6 +104,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = true;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = true;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Shaddow Test only implemented in 2D!");
             break;
@@ -109,6 +116,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = true;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Propagating Particles Problem only implemented in 1D!");
             break;
@@ -120,6 +128,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = true;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = true;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Propagating Particles Absoption Problem only implemented in 1D!");
             break;
@@ -131,6 +140,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = true;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = true;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Two Beams Problem only implemented in 1D!");
             break;
@@ -143,6 +153,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
+            bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Sine-wave:streaming only implemented in 1D!");
             break;
@@ -156,6 +167,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             steadyState = false;
             timedependentSource = true;
             timedependentbdr = true;
+            bdrcon_needed = true;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 ManifacturedSol only implemented in 1D!");
             break;

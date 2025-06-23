@@ -27,9 +27,11 @@ int main(int argc, char *argv[])
     bool paraview;
     bool important = false;
     string vtk_name = "Test";
+    string iter_output;
 
     const char *MeshFile = "meshes/periodic-square.mesh";
     const char *OutputDirectory = "output/not_important";
+    const char *ArrayOutput = "iteroutput";
 
     double dt = 0.001;
     double CFL = -std::numeric_limits<double>::infinity();;
@@ -61,6 +63,7 @@ int main(int argc, char *argv[])
     args.AddOption(&visualizationSteps, "-vis", "--visualization-steps", "Visualize every n-th time step");
     args.AddOption(&paraviewSteps, "-ps", "--paraview-visualization-steps", "Export VTK every n-th time step. If no ps > 0 is given, no VTK output will be generated");
     args.AddOption(&important, "-i", "--important", "-ni", "--not-important", "Write out vtk files into another folder for easier find.");
+    args.AddOption(&iter_output, "-io", "--iteroutput", "Give the output a name to write out Iteration number for steady state.");
     args.Parse();
 
     if (!args.Good())
@@ -310,6 +313,11 @@ int main(int argc, char *argv[])
     auto start = high_resolution_clock::now();
 
     double residual;
+    Array<double>* residual_history = NULL;
+    if(!iter_output.std::string::empty() && Mpi::Root() && sys->steadyState)
+    {
+        residual_history = new Array<double>();
+    }
     double dt_real;
     // 11. Perform time integration.
     for (int ti = 0; !done;)
@@ -334,6 +342,10 @@ int main(int argc, char *argv[])
         if(sys->steadyState)
         {
             residual = met->ComputeSteadyStateResidual_quick(met->uOld, u, dt);
+            if(Mpi::Root() && !iter_output.std::string::empty() )
+            {
+                double placeholder = residual_history->Append(residual);
+            }
             done = (residual < 1e-8);
         }
         else 
@@ -458,10 +470,29 @@ int main(int argc, char *argv[])
             cout << "Results are saved as " << para_loc << endl;
         }
     }
+
+    if(!iter_output.std::string::empty() && Mpi::Root() && sys->steadyState)
+    {
+        string Iter_log = iter_output + "_" + prob + "_" + meshfile + "_fe-" + to_string(FEscheme) + "_sys-" + to_string(system) + "_bm-"+ to_string(sysconfig.benchmark) 
+            + "_o-" + to_string(order) + "_CFL-" + to_string(CFL) + "_ode-" +to_string(ode_solver_type) + "_r-" + to_string(refinements);
+
+    
+        ostringstream IterFinalName4;
+        IterFinalName4 << ArrayOutput << "/" + Iter_log + ".fmt";
+        ofstream OutputIter4(IterFinalName4.str().c_str());
+        OutputIter4.precision(precision);
+        residual_history->Save(OutputIter4);
+
+        cout << "Iteration output saved as " << Iter_log << endl;
+    }
     
 
     delete odesolver;
     delete met;
     delete sys;
     delete pd;
+    if(residual_history)
+    {
+        delete residual_history;
+    }
 }
