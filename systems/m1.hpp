@@ -6,6 +6,8 @@
 class M1 : public System
 {
 public:
+
+
    explicit M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &config_);
    ~M1() { };
 
@@ -15,7 +17,7 @@ public:
    virtual void EntropyVariable(const Vector &u, Vector &v) const override;
    virtual void EntropyPotential(const Vector &u, Vector &psi) const override;
    virtual void SetBoundaryConditions(const Vector &y1, Vector &y2, const Vector &normal, int attr) const;
-   virtual void ComputeErrors(Array<double> &errors, const ParGridFunction &u, double domainSize) const override;
+   virtual void ComputeErrors(Array<double> & errors, const ParGridFunction &u, double domainSize, const double t) const override;
    virtual bool Admissible(const Vector &u) const override;
    //virtual bool GloballyAdmissible(const Vector &x) const override;
    virtual void ComputeDerivedQuantities(const Vector &u, ParGridFunction &f) const override;

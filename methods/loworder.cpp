@@ -6,6 +6,22 @@ LowOrder::LowOrder(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, Sy
 
 void LowOrder::Mult(const Vector &x, Vector &y) const    
 {   
+    if(sys->timedependentSource)
+    {
+        sys->q->SetTime(t);
+        Source_LF.LinearForm::operator=(0.0); 
+        Source_LF.Assemble();
+        Source = Source_LF;
+        VSyncVector(Source);
+        //cout << Source.Norml2()<< endl;
+    }
+    
+    if(sys->timedependentbdr)
+    {
+        sys->bdrCond.SetTime(t);
+        inflow.ProjectCoefficient(sys->bdrCond);
+    }
+    
     MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     Expbc(x, aux1);
 

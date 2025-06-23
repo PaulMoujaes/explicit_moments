@@ -48,6 +48,22 @@ MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
 void MCL::Mult(const Vector &x, Vector &y) const
 {
     MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
+    if(sys->timedependentSource)
+    {
+        sys->q->SetTime(t);
+        Source_LF.LinearForm::operator=(0.0); 
+        Source_LF.Assemble();
+        Source = Source_LF;
+        VSyncVector(Source);
+        //cout << Source.Norml2()<< endl;
+    }
+
+    if(sys->timedependentbdr)
+    {
+        sys->bdrCond.SetTime(t);
+        inflow.ProjectCoefficient(sys->bdrCond);
+    }
+
     UpdateGlobalVector(x);
     aux1 = 0.0;
     Expbc(x, aux1);
@@ -267,7 +283,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
 
             double dij = CalcBarState_returndij(i, j_gl, uij, uji);
              
-            const double fij_ = dofs.massmatrix(i_td, j_gl) * (uDot_gl[0]->Elem(i_gl) - uDot_gl[0]->Elem(j_gl)) + dij * (x_gl[0]->Elem(i_gl) - x_gl[0]->Elem(j_gl));
+            const double fij_ = dofs.massmatrix(i_td, j_gl) * (uDot_gl[0]->Elem(i_gl) - uDot_gl[0]->Elem(j_gl)) + (dij + M_sigma_a(i_td, j_gl)) * (x_gl[0]->Elem(i_gl) - x_gl[0]->Elem(j_gl));
             double fij_star;
             
             if( fij_> 0)
@@ -275,9 +291,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 double fij_min = 2.0 * dij * (umax[0]->Elem(i_gl) - uij(0));
                 double fij_max = 2.0 * dij* (uji(0) - umin[0]->Elem(j_gl));
                 double fij_bound = min(fij_max, fij_min);
-                
-                //fij_max = 2.0 * dij* (uji - 1e-15);
-                //fij_bound = fij_max;
 
                 fij_star = min(fij_, fij_bound);
                 fij_star = max(0.0, fij_star);
@@ -287,9 +300,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 double fij_min = 2.0 * dij * (umin[0]->Elem(i_gl) - uij(0));
                 double fij_max = 2.0 * dij* (uji(0) - umax[0]->Elem(j_gl));
                 double fij_bound = max(fij_max, fij_min);
-
-                //fij_min = 2.0 * dij * (1e-15 - uij);
-                //fij_bound = fij_min;
 
                 fij_star = max(fij_, fij_bound); 
                 fij_star= min(0.0 , fij_star);
@@ -324,28 +334,39 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 const double phi_ij = (uij(n) + uji(n)) / (uij(0) + uji(0) );
                 const double phi_ji = phi_ij;
 
-                const double rij = uij(0) + 0.5 * fij_gl[0]->Elem(i_td, j_gl) / dij;
+                const double rij = uij(0) + 0.5 * fij_gl[0]->Elem(i_td, j_gl) / dij;  
                 const double rji = uji(0) - 0.5 * fij_gl[0]->Elem(i_td, j_gl) / dij;
 
-                const double fij_ = dofs.massmatrix(i_td, j_gl) * (uDot_gl[n]->Elem(i_gl) - uDot_gl[n]->Elem(j_gl))  + dij * (x_gl[n]->Elem(i_gl) - x_gl[n]->Elem(j_gl));  
-                const double gij_ = fij_ + 2.0 * dij * (uij(n) - rij * phi_ij) ;
+                const double fij_ = dofs.massmatrix(i_td, j_gl) * (uDot_gl[n]->Elem(i_gl) - uDot_gl[n]->Elem(j_gl))  + (dij + M_sigma_aps(i_td, j_gl)) * (x_gl[n]->Elem(i_gl) - x_gl[n]->Elem(j_gl));  
+                const double gij_ = fij_ + 2.0 * dij * (uij(n) - rij * phi_ij);
 
-                double gij_star;
+                double gij_star = gij_;
+                
+                //*
                 if(gij_ > 0.0)
                 {   
-                    const double gij_max = 2.0 * dij * min(rij * (umax[n]->Elem(i_gl) - phi_ij), rji * (phi_ji - umin[n]->Elem(j_gl)));
-                    gij_star = max(0.0, min(gij_, gij_max));
-                }
-                else 
-                {
-                    const double gij_min =  2.0 * dij * max(rij * (umin[n]->Elem(i_gl) - phi_ij) , rji * (phi_ji - umax[n]->Elem(j_gl)));
-                    gij_star = min(0.0, max(gij_, gij_min));
-                }
+                    double gij_max = rij * (umax[n]->Elem(i_gl) - phi_ij);
+                    double gij_min = rji * (phi_ji - umin[n]->Elem(j_gl));
 
-                MFEM_ASSERT(abs(gij_star) < abs(gij_) + 1e-15, "a_ij rhophi wrong!");                
+                    double gij_bound = 2.0 * dij * min(gij_max, gij_min);
+                    gij_star = min(gij_, gij_bound);
+                    gij_star = max(0.0, gij_star);
+                }
+                else  if(gij_ < 0.0)
+                {
+                    double gij_min = rij * (umin[n]->Elem(i_gl) - phi_ij);
+                    double gij_max = rji * (phi_ji - umax[n]->Elem(j_gl));
+
+                    const double gij_bound =  2.0 * dij * max(gij_min, gij_max);
+                    gij_star = max(gij_, gij_bound);
+                    gij_star = min(gij_star, 0.0);
+                }
+                //*/
+            
+                //MFEM_ASSERT(abs(gij_star) < abs(gij_) + 1e-15, "a_ij rhophi wrong!");                
                 double fij_star = gij_star - 2.0 * dij * (uij(n) - rij * phi_ij);
 
-                fij_gl[n]->Elem(i_td, j_gl) = fij_star;
+                fij_gl[n]->Elem(i_td, j_gl) = fij_star; //fij_star;
             }
         }
     }
@@ -353,6 +374,8 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
 
     // positivity fix
     #if PositivityFix == 1
+
+        /*
         for(int i = 0; i < nDofs; i++)
         {   
             int i_td = fes->GetLocalTDofNumber(i);
@@ -365,23 +388,110 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 if(j_gl == i_gl){continue;}
 
                 double dij = CalcBarState_returndij(i, j_gl, uij, uji);
-
                 for(int n = 0; n < numVar; n++)
                 {
                     uij(n) += 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;  
                     uji(n) -= 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;
                 }
-                
-                if(sys->ComputePressureLikeVariable(uij) < 0.0 || sys->ComputePressureLikeVariable(uji) < 0.0)
+
+                if(!sys->Admissible(uij) || !sys->Admissible(uij))
                 {
                     for(int n = 0; n < numVar; n++)
                     {
                         fij_gl[n]->Elem(i_td, j_gl) = 0.0;
                     }
                 }
+                
             }
         }
+        //*/
+
+                
+        //*
+        for(int i = 0; i < nDofs; i++)
+        {   
+            int i_td = fes->GetLocalTDofNumber(i);
+            if(i_td == -1) {continue;}
+            int i_gl = fes->GetGlobalTDofNumber(i);
+
+            for(int k = I[i_td]; k < I[i_td+1]; k++)
+            {
+                int j_gl = J[k];
+                if(j_gl == i_gl){continue;}
+
+                double dij = CalcBarState_returndij(i, j_gl, uij, uji);
+                
+                double psi1_ij_sq = 0.0;
+                double psi1_ji_sq = 0.0;
+
+                double f1_ij_sq = 0.0;
+
+                double f1p1_ij = 0.0;
+                double f1p1_ji = 0.0;
+
+                for(int d = 0; d < dim; d++)
+                {
+                    f1_ij_sq += fij_gl[d+1]->Elem(i_td, j_gl) * fij_gl[d+1]->Elem(i_td, j_gl);
+
+                    psi1_ij_sq += uij(d+1) * uij(d+1);
+                    psi1_ji_sq += uji(d+1) * uji(d+1);
+                    
+                    f1p1_ij += uij(d+1) * fij_gl[d+1]->Elem(i_td, j_gl);
+                    f1p1_ji += - fij_gl[d+1]->Elem(i_td, j_gl) * uji(d+1);
+
+                }
+
+                double f1_ji_sq = f1_ij_sq; // fij = - fji => fij^2 = fji^2
+                double f0_ij = fij_gl[0]->Elem(i_td, j_gl);
+                double f0_ji = - f0_ij;
+
+                double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
+                double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
+                
+
+                //MFEM_VERIFY(Qij > 0.0, "Qij not positive!");
+                //MFEM_VERIFY(Qji > 0.0, "Qji not positive!");
+                
+                Qij = max(Qij, 0.0);
+                Qji = max(Qji, 0.0);
+                Qij *= 1.0 - 1e-15;
+                Qji *= 1.0 - 1e-15;
+
+                double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
+                double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
+
+                double aij = Qij / Rij;
+                double aji = Qji / Rji;
+                
+                double alpha = 1.0;
+                if(Rij > Qij && Rji > Qji)
+                {
+                    alpha = min(aij, aji);
+                }
+                else if( Rij > Qij && Rji <= Qji)
+                {
+                    alpha = aij;
+                }
+                else if( Rij <= Qij && Rji > Qji)
+                {
+                    alpha = aji;
+                }
+
+                for(int n = 0; n < numVar; n++)
+                {
+                    fij_gl[n]->Elem(i_td, j_gl) *= alpha;
+
+                    uij(n) += 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;  
+                    uji(n) -= 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;
+                }
+
+                MFEM_VERIFY(sys->Admissible(uij) && sys->Admissible(uji), "PA barstates not PA!");
+            }
+        }
+        //*/
     #endif
+
+
 
     AntiDiffFluxes = 0.0;
     for(int n = 0; n < numVar; n++)

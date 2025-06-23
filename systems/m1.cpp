@@ -2,16 +2,15 @@
 
 SystemConfiguration configM1;
 
-void AnalyticalSolutionM1(const Vector &x, Vector &u);
+void AnalyticalSolutionM1(const Vector &x, double t, Vector &u);
 void InitialConditionM1(const Vector &x, Vector &u);
-void InflowFunctionM1(const Vector &x, Vector &u);
+void InflowFunctionM1(const Vector &x, double t, Vector &u);
 
 double sigma_a(const Vector &x);
 double sigma_aps(const Vector &x);
-void source(const Vector &x, Vector &q);
+void source(const Vector &x, double t, Vector &q);
 
-bool Admissible_outside(Vector &u);
-bool solutionKnown_glob;
+double alpha;
 
 M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &config_): 
                 System(vfes_, ublock, vfes_->GetMesh()->Dimension() + 1, config_, VectorFunctionCoefficient(vfes_->GetMesh()->Dimension() + 1, InflowFunctionM1)), psi2(dim, dim)
@@ -22,6 +21,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
     Sigma_0 = new FunctionCoefficient(sigma_a);
     Sigma_1 = new FunctionCoefficient(sigma_aps);
     q = new VectorFunctionCoefficient(numVar, source);
+    q->SetTime(0.0);
 
     switch (configM1.benchmark)
     {   
@@ -30,6 +30,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Line-Source";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Line Source only implemented in 2D!");
             break;
@@ -39,6 +41,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Flash-Test";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Flash Test only implemented in 2D!");
             break;
@@ -48,6 +52,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Homogeneous-Disk";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Homogeneous Disk only implemented in 2D!");
             break;
@@ -57,6 +63,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Lattice-Problem";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Lattice Problem only implemented in 2D!");
             break;
@@ -66,6 +74,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Riemann-Problem";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Riemann Problem only implemented in 1D!");
             break;
@@ -75,6 +85,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Absorption-Riemann-Problem";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Absorption Riemann Problem only implemented in 1D!");
             break;
@@ -84,6 +96,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Shaddow-Test";
             solutionKnown = false;
             steadyState = true;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Shaddow Test only implemented in 2D!");
             break;
@@ -93,6 +107,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Propagating-Particles-Problem";
             solutionKnown = false;
             steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Propagating Particles Problem only implemented in 1D!");
             break;
@@ -102,6 +118,8 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Propagating-Particles-Absoption-Problem";
             solutionKnown = false;
             steadyState = true;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Propagating Particles Absoption Problem only implemented in 1D!");
             break;
@@ -111,17 +129,40 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Two-Beams-Problem";
             solutionKnown = false;
             steadyState = true;
+            timedependentSource = false;
+            timedependentbdr = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 1, "M1 Two Beams Problem only implemented in 1D!");
             break;
         }
 
+        case 10:
+        {
+            problemName = "M1-Sine-wave:streaming";
+            solutionKnown = true;
+            steadyState = false;
+            timedependentSource = false;
+            timedependentbdr = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 Sine-wave:streaming only implemented in 1D!");
+            break;
+        }
+
+        case 11:
+        {
+            alpha = 0.9;
+            problemName = "M1-ManifacturedSol";
+            solutionKnown = true;
+            steadyState = false;
+            timedependentSource = true;
+            timedependentbdr = true;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 ManifacturedSol only implemented in 1D!");
+            break;
+        }
         default:
             MFEM_ABORT("No such test case implemented.");
     }
-
-    solutionKnown_glob = solutionKnown;
-    //collision_coeff = 0.0;
 }
 
 
@@ -327,7 +368,7 @@ bool M1::Admissible(const Vector &u) const
         v(d) = u(d+1) / max(u(0), 1e-100);
         MFEM_VERIFY(!isnan(u(d+1)), "psi1 is nan!");
     }
-    if(! (v.Norml2() < 1.0 ))
+    if(! (v.Norml2() <= 1.0 ))
     {
         cout << "f = " << v.Norml2() << ", ";
         return false; 
@@ -407,18 +448,23 @@ double M1::Entropy(const Vector &u) const
 } 
 
 
-void AnalyticalSolutionM1(const Vector &x, Vector &u)
+void AnalyticalSolutionM1(const Vector &x, double t, Vector &u)
 {
    const int dim = x.Size();
     switch (configM1.benchmark)
     {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
+        case 10:
         {
-            MFEM_ABORT("tbd")
+            u = 0.5 + 0.49 * sin(2.0 * M_PI * x(0));
             break;
+        }
+        case 11: 
+        {
+            u(0) = sin(0.5 * M_PI * x(0)) + (1.0 - alpha);
+            u(1) = alpha * u(0);
+            u *= exp(-t);
+            break;
+
         }
         default:
             MFEM_ABORT("Analytical solution not known.");
@@ -431,6 +477,12 @@ void InitialConditionM1(const Vector &x, Vector &u)
 {
     switch (configM1.benchmark)
     {
+        case 10:
+        case 11:
+        {
+            AnalyticalSolutionM1(x, 0.0, u);
+            break;
+        }
         case 0: 
         {
             u = 0.0;
@@ -504,9 +556,9 @@ void InitialConditionM1(const Vector &x, Vector &u)
     }
 }
 
-void InflowFunctionM1(const Vector &x, Vector &u)
+void InflowFunctionM1(const Vector &x, double t, Vector &u)
 {
-    double f = 0.9;
+    //double f = 0.9;
     switch (configM1.benchmark)
     {
         case 0:
@@ -515,9 +567,15 @@ void InflowFunctionM1(const Vector &x, Vector &u)
         case 3:
         case 4:
         case 5:
+        case 10:
         { 
-            InitialConditionM1(x,u);  
+            InitialConditionM1(x,u);
             break;      
+        }
+        case 11:
+        {
+            AnalyticalSolutionM1(x, t, u);
+            break;
         }
         case 6:
         {
@@ -562,31 +620,12 @@ void InflowFunctionM1(const Vector &x, Vector &u)
     }
 }
 
-bool Admissible_outside(Vector &u)
-{
-    int dim = u.Size()-1;
-    if(u(0) < 1e-15)
-    {
-        return false;
-    }
-
-    Vector v(dim);
-    for(int d = 0; d < dim; d++)
-    {
-        v(d) = u(d+1) / u(0);
-    }
-
-    return v.Norml2() < 1.0+1e-15;
-
-}
-
-
-void M1::ComputeErrors(Array<double> & errors, const ParGridFunction &u, double domainSize) const
+void M1::ComputeErrors(Array<double> & errors, const ParGridFunction &u, double domainSize, double t) const
 {
    errors.SetSize(3);
    Vector component(dim + 2);
    VectorFunctionCoefficient uAnalytic(numVar, AnalyticalSolutionM1);
-
+    uAnalytic.SetTime(t);
    component = 0.0;
    component(0) = 1.0;
    VectorConstantCoefficient weight1(component);
@@ -643,6 +682,7 @@ double sigma_a(const Vector &x)
         case 1:
         case 4:
         case 7:
+        case 10:
         {
             return 0.0;
         }
@@ -700,6 +740,10 @@ double sigma_a(const Vector &x)
         {
             return 4.0; //(x(0) > 0.5);
         }
+        case 11:
+        {
+            return 1.0;
+        }
 
         default: 
         MFEM_ABORT("No sigma_a for this benchmark!");
@@ -721,6 +765,8 @@ double sigma_aps(const Vector &x)
         case 7:
         case 8:
         case 9:
+        case 10:
+        case 11:
         {
             sigma_s = 0.0; break;
         }
@@ -762,7 +808,7 @@ double sigma_aps(const Vector &x)
     return sigma_s + sigma_a(x);
 }
 
-void source(const Vector &x, Vector &q)
+void source(const Vector &x, double t, Vector &q)
 {
     q = 0.0;
 
@@ -776,6 +822,7 @@ void source(const Vector &x, Vector &q)
         case 7:
         case 8:
         case 9:
+        case 10:
         {
             break;
         }
@@ -791,6 +838,18 @@ void source(const Vector &x, Vector &q)
             q(0) = (x(0) >= 3.0 && x(0) <= 4.0 && x(1) >= 3.0 && x(1) <= 4.0) * 1.0;
             break;
         }
+        case 11: 
+        {
+            double x_a = (5.0 - 2.0 * sqrt(max(4.0 - 3.0 * alpha * alpha, 0.0))) / 3.0;
+            //MFEM_VERIFY(x_a <= alpha, "alpha not realizable for source!");
+            q(0) = cos(0.5 * M_PI * x(0));
+            q(1) = x_a * cos(0.5 * M_PI * x(0));
+            q *= exp(-t) * 0.5 * M_PI * alpha ;
+            MFEM_VERIFY(q(0) >= 0.0,"q0 not positive");
+            MFEM_VERIFY(abs(q(1)) <= q(0) , "q not idp");
+            break;
+        }
+
 
         default: 
         MFEM_ABORT("No source term for this benchmark!");

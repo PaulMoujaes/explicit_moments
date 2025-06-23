@@ -280,8 +280,12 @@ int main(int argc, char *argv[])
         pd->RegisterField("psi1", &psi1);
         pd->RegisterField("f", &f);
         //pd->RegisterField("inflow", &met->inflow);
-
-        //pd->RegisterField("analytical solution", &ana_sol);
+        //*
+        if(sys->solutionKnown)
+        {
+            pd->RegisterField("analytical solution", &met->inflow);
+        }
+        //*/
         pd->SetCycle(0);
         pd->SetTime(0.0);
         pd->Save();
@@ -420,7 +424,7 @@ int main(int argc, char *argv[])
     if (sys->solutionKnown)
     {
         Array<double> errors;
-        sys->ComputeErrors(errors, u, domainSize);
+        sys->ComputeErrors(errors, u, domainSize, t);
 
         if(Mpi::Root())
         {

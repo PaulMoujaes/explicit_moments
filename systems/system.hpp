@@ -29,7 +29,7 @@ class System
         virtual double ComputeDiffusion(const Vector &cij, const Vector &cji, const Vector &u1, const Vector &u2) const;
         virtual void ComputeLaxFriedrichsFlux(const Vector &x1, const Vector &x2, const Vector &normal, Vector &y) const;
         virtual double GetIntWaveSpeed(const Vector &u, const Vector &x) const {MFEM_ABORT("Not implemented for this system!") return 0.0;};
-        virtual void ComputeErrors(Array<double> &errors, const ParGridFunction &u, double domainSize) const {};
+        virtual void ComputeErrors(Array<double> & errors, const ParGridFunction &u, double domainSize, const double t) const {};
         virtual void WriteErrors(const Array<double> &errors) const;
         virtual double Entropy(const Vector &u) const {MFEM_ABORT("No Entropy for this system"); return 0.0; };
         virtual void CutOff(Vector &x) const;
@@ -39,7 +39,7 @@ class System
         const int numVar, dim;
         ParFiniteElementSpace *vfes;
         ParGridFunction u0;
-        bool solutionKnown, steadyState;
+        bool solutionKnown, steadyState, timedependentSource, timedependentbdr;
 
         FunctionCoefficient *Sigma_0, *Sigma_1;
         VectorFunctionCoefficient *q;

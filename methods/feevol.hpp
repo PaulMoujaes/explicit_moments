@@ -13,7 +13,7 @@ class FE_Evolution : public TimeDependentOperator
         ParFiniteElementSpace *vfes;
         GroupCommunicator &gcomm, &vgcomm;
         ParMesh *pmesh;
-        ParGridFunction inflow;
+        mutable ParGridFunction inflow;
         System *sys;
         //mutable double t;
         int intorder;
@@ -43,13 +43,15 @@ class FE_Evolution : public TimeDependentOperator
         Array<SparseMatrix*> C, CT;
         mutable Array <Vector*> x_gl;
         mutable bool updated;
+        mutable ParLinearForm Source_LF;
 
         mutable SparseMatrix ML_over_MLpdtMLs_m1, One_over_MLpdtMLs;
         SparseMatrix ML_inv;
 
         mutable HypreParVector aux_hpr;
 
-        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps, Source;
+        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps;
+        mutable Vector Source;
 
         SparseMatrix M_sigma_a, M_sigma_aps;
 
