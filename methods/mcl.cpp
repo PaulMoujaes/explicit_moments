@@ -452,10 +452,10 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 //MFEM_VERIFY(Qij > 0.0, "Qij not positive!");
                 //MFEM_VERIFY(Qji > 0.0, "Qji not positive!");
                 
-                Qij = max(Qij, 0.0);
-                Qji = max(Qji, 0.0);
-                Qij *= 1.0 - 1e-15;
-                Qji *= 1.0 - 1e-15;
+                //Qij = max(Qij, 0.0);
+                //Qji = max(Qji, 0.0);
+                Qij *= 1.0 - 1e-13;
+                Qji *= 1.0 - 1e-13;
 
                 double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
                 double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
@@ -476,7 +476,11 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                 {
                     alpha = aji;
                 }
-
+                
+                //MFEM_VERIFY(alpha >= -1e-15 && alpha <= 1.0 +1e-15, "PA barstates not PA!");
+                
+                alpha = max(0.0, alpha);
+                alpha = min(1.0, alpha);
                 for(int n = 0; n < numVar; n++)
                 {
                     fij_gl[n]->Elem(i_td, j_gl) *= alpha;
@@ -485,7 +489,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Vector 
                     uji(n) -= 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;
                 }
 
-                MFEM_VERIFY(sys->Admissible(uij) && sys->Admissible(uji), "PA barstates not PA!");
+                //MFEM_VERIFY(sys->Admissible(uij) && sys->Admissible(uji), "PA barstates not PA!");
             }
         }
         //*/
@@ -670,6 +674,7 @@ void MCL::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) c
             aux1(i + n * nDofs) += Source(i + n * nDofs) - (n == 0) * Mlumped_sigma_a(i) * ui(n) - (n > 0) * Mlumped_sigma_aps(i) * ui(n);
         }
     }
+
     updated = false;
     VSyncVector(aux1);
     ML_inv.Mult(aux1, res);

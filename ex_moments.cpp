@@ -194,13 +194,15 @@ int main(int argc, char *argv[])
 
     ParGridFunction u(&vfes, ublock);
     u = sys->u0;
-    ParGridFunction Du = u;
-    Du = 0.0;
-    ParGridFunction res_gf = Du;
+    //ParGridFunction res_gf = u;
+    //Du = 0.0;
+    //ParGridFunction res_gf = Du;
     ParGridFunction main(&fes, ublock.GetBlock(0));
     ParGridFunction f(&fes);
+    ParGridFunction sigma_a(&fes);
     ParGridFunction psi1(&dfes, ublock.GetData() + fes.GetNDofs());
     sys->ComputeDerivedQuantities(u, f);
+    sigma_a.ProjectCoefficient(*sys->Sigma_0);
 
     ParBilinearForm *mL = new ParBilinearForm(&fes);
     Vector lumpedMassMatrix(mL->Height());
@@ -282,11 +284,17 @@ int main(int argc, char *argv[])
         pd->RegisterField("psi0", &main);
         pd->RegisterField("psi1", &psi1);
         pd->RegisterField("f", &f);
+        pd->RegisterField("sigma_a", &sigma_a);
         //pd->RegisterField("inflow", &met->inflow);
         //*
         if(sys->solutionKnown)
         {
             pd->RegisterField("analytical solution", &met->inflow);
+        }
+        if(sys->steadyState)
+        {
+            met->res_gf = 1.0;
+            pd->RegisterField("residual", &met->res_gf);
         }
         //*/
         pd->SetCycle(0);
@@ -318,25 +326,35 @@ int main(int argc, char *argv[])
     {
         residual_history = new Array<double>();
     }
+
+     // since dij ist constant in time, there for CFL condition only needs to be computed once
+    if(addaptive_ts)
+    {
+        dt = met->Compute_dt(u, CFL);
+        met->Set_dt_Update_MLsigma(dt_scale * dt);
+    }
+
     double dt_real;
+
     // 11. Perform time integration.
     for (int ti = 0; !done;)
     {
         ti++;
-        if(addaptive_ts)
-        {
-            dt = met->Compute_dt(u, CFL);
-        }
+
         met->uOld = u;
         if(!sys->steadyState)
         {
             dt_real = min(dt, t_final - t);
+            if(abs(dt - dt_real) > 1e-15)
+            {
+                met->Set_dt_Update_MLsigma(dt_scale * dt_real);
+            }
         }
         else
         {
             dt_real = dt;
         }
-        met->Set_dt_Update_MLsigma(dt_scale * dt_real);
+        //met->Set_dt_Update_MLsigma(dt_scale * dt_real);
         odesolver->Step(u, t, dt_real);
         
         if(sys->steadyState)
