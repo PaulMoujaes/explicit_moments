@@ -466,3 +466,18 @@
 2765.54 seconds needed for the run: ex_moments -sys 0 -b 13 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn MCL -ps 100 -i 
 3353.97 seconds needed for the run: ex_moments -sys 0 -b 13 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn MCL_q2=1 -ps 100 -i 
 69914.6 seconds needed for the run: ex_moments -sys 0 -b 13 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState_q2=1 -ps 1000 -i -io Steadystate_q2=1 
+15.8976 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn MCL_SteadyState 
+16.7623 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.6 -vn MCL_SteadyState 
+16.7822 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.6 -vn MCL_SteadyState 
+17.9709 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn MCL_SteadyState 
+10.3531 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState 
+14.2438 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 3 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState 
+10.9064 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState 
+12.2574 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState 
+14.5225 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 3 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState -i -io 2beamsteadystate -ps 2500 
+10.481 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState -i -io 2beamsteadystate -ps 2500 
+82726.6 seconds needed for the run: ex_moments -sys 0 -b 13 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.9 -vn MCL_SteadyState_q2=1 -io Steadystatelattice_heun 
+10.351 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 
+10.1159 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 
+7.01005 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 
+11.9651 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 

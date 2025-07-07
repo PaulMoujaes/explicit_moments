@@ -1,5 +1,9 @@
 #include "m1.hpp"
 
+// Closure = 0 -> Eddington Tensor (M1)
+// Closure = 1 -> Kershaw
+#define Closure 0
+
 SystemConfiguration configM1;
 
 void AnalyticalSolutionM1(const Vector &x, double t, Vector &u);
@@ -278,35 +282,73 @@ void M1::EvaluatePsi2(const Vector &u, DenseMatrix &psi2) const
     psi2.SetSize(dim, dim);
     psi2 = 0.0;
 
-    double chi = EvaluateEddingtonFactor(u);
+    //*
+    #if Closure == 0
+        double chi = EvaluateEddingtonFactor(u);
+        Vector v(dim);
+        Evaluate_f_vec(u, v);
+        double psi1_sq = 0.0;
+        for(int d = 0; d < dim; d++)
+        {
+            psi1_sq += u(d+1) * u(d+1);
+            psi2(d,d) = 0.5 * (1.0 - chi);
+        }
+
+        double f_sq = v.Norml2();
+        f_sq *= f_sq; 
+        for(int i = 0; i < dim; i++)
+        {
+            for(int j = 0; j < dim; j++)
+            {
+                double a =  0.5 * (3.0 * chi - 1.0) * v(i) * v(j) / max(f_sq, 1e-100);
+                double b =  0.5 * (3.0 * chi - 1.0) * u(i+1) * u(j+1) / max(psi1_sq, 1e-100);
+
+               psi2(i,j) += b;
+                if(log10(abs(a-b)) > -15.0)
+                {
+                    //u.Print();
+                    cout << f_sq * u(0) * u(0)- psi1_sq << endl;
+                }
+            }
+        }
+        psi2 *= u(0);
+
+    #elif Closure == 1
+        Vector v(dim);
+        Evaluate_f_vec(u, v);
+        for(int d = 0; d < dim; d++)
+        {
+            psi2(d,d) = 1.0;
+        }
+
+        for(int i = 0; i < dim; i++)
+        {
+            for(int j = 0; j < dim; j++)
+            {
+                psi2(i,j) += 2.0 * v(i) * v(j);
+            }
+        }
+        psi2 *= u(0) / 3.0;
+    #endif
+    //*/
+
+    /*
     Vector v(dim);
     Evaluate_f_vec(u, v);
-    double psi1_sq = 0.0;
     for(int d = 0; d < dim; d++)
     {
-        psi1_sq += u(d+1) * u(d+1);
-        psi2(d,d) = 0.5 * (1.0 - chi);
+        psi2(d,d) = 1.0;
     }
 
-    double f_sq = v.Norml2();
-    f_sq *= f_sq; 
     for(int i = 0; i < dim; i++)
     {
         for(int j = 0; j < dim; j++)
         {
-            double a =  0.5 * (3.0 * chi - 1.0) * v(i) * v(j) / max(f_sq, 1e-100);
-            double b =  0.5 * (3.0 * chi - 1.0) * u(i+1) * u(j+1) / max(psi1_sq, 1e-100);
-
-            psi2(i,j) += b;
-            if(log10(abs(a-b)) > -15.0)
-            {
-                //u.Print();
-                cout << f_sq * u(0) * u(0)- psi1_sq << endl;
-            }
+            psi2(i,j) += 2.0 * v(i) * v(j);
         }
     }
-
-    psi2 *= u(0);
+    psi2 *= u(0) / 3.0;
+    //*/
 }
 
 void M1::Evaluate_f_vec(const Vector &u, Vector &v) const
@@ -586,8 +628,7 @@ void InitialConditionM1(const Vector &x, Vector &u)
         case 9:
         {
             u(0) = 1.0;
-            u(1) = 
-            0.0;
+            u(1) = 0.0;
             break;
         }
 
