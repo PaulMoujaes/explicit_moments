@@ -1,7 +1,7 @@
 #include "m1.hpp"
 
 // Closure = 0 -> Eddington Tensor (M1)
-// Closure = 1 -> Kershaw
+// Closure = 1 -> Kershaw (K1)
 #define Closure 0
 
 SystemConfiguration configM1;
@@ -193,6 +193,18 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             problemName = "M1-Directed-Lattice-Problem";
             solutionKnown = false;
             steadyState = true;
+            timedependentSource = false;
+            timedependentbdr = false;
+            bdrcon_needed = false;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 2, "M1 Directed Lattice Problem only implemented in 2D!");
+            break;
+        }
+        case 14:
+        {
+            problemName = "M1-MoST";
+            solutionKnown = false;
+            steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
             bdrcon_needed = false;
@@ -594,6 +606,7 @@ void InitialConditionM1(const Vector &x, Vector &u)
         case 3:
         case 12:
         case 13:
+        case 14:
         {
             u = 0.0;
             u(0) = 1e-10;
@@ -650,6 +663,7 @@ void InflowFunctionM1(const Vector &x, double t, Vector &u)
         case 5:
         case 10:
         case 13:
+        case 14:
         { 
             InitialConditionM1(x,u);
             break;      
@@ -786,6 +800,46 @@ double sigma_a(const Vector &x)
         case 12:
         {
             return 0.0;
+        }
+        case 14:
+        {
+            double r = 0.025;
+            bool in_M = abs(x(0)-0.1)<=0.01 && x(1)>=0.41 && x(1)<=0.68 || abs(x(0)-0.25)<=0.01 && x(1)>=0.41 && x(1)<=0.68
+                        || abs(-3.6*(x(0)-0.05)+0.86-x(1))<=0.03 && x(0)>=0.1 && x(0)<=0.175 && x(1)>=0.41 && x(1)<=0.68
+                        || abs(3.6*(x(0)-0.05)-0.04-x(1))<=0.03 && x(0)>=0.175 && x(0)<=0.24 && x(1)>=0.41 && x(1)<=0.68;
+
+            bool in_o = sqrt(pow(x(0)-0.39,2.0)+pow(x(1)-0.48,2.0)) <= r+0.05 &&
+                sqrt(pow(x(0)-0.39,2.0)+pow(x(1)-0.48,2.0)) >= r+0.03;
+
+            // Improved Letter S
+            // Corrected top arc of S (top-left)
+            bool top_S_1 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.61,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.61,2.0)) >= r + 0.03 &&
+                x(0) <= 0.6;
+
+            bool top_S_2 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.61,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.5835,2.0) + pow(x(1)-0.61,2.0)) >= r + 0.03 &&
+                x(0) >= 0.6 && x(1)>=0.61;
+
+            // Corrected bottom arc of S (bottom-right)
+            bool bottom_S_1 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) >= r + 0.03 &&
+                x(0) >= 0.6;
+
+            bool bottom_S_2 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) >= r + 0.03 &&
+                x(0) <= 0.6 && x(1)<=0.48;
+
+            bool in_S = top_S_1 || top_S_2 || bottom_S_1 || bottom_S_2;
+
+
+            bool in_T = (
+                abs(x(0)-0.8)<=0.01 && x(1)>=0.41 && x(1)<=0.68 // vertical bar
+                ) || (
+                abs(x(1)-0.68)<=0.01 && x(0)>=0.7 && x(0)<=0.9); // top bar
+
+            bool MoST = in_M || in_o || in_S || in_T;
+            return 1000.0 * MoST;
         }
         case 2:
         {
@@ -978,6 +1032,49 @@ double sigma_aps(const Vector &x)
             sigma_s = !absorbtion * 1.0;
             break;
         }
+        //*
+        case 14:
+        {
+            double r = 0.025;
+            bool in_M = abs(x(0)-0.1)<=0.01 && x(1)>=0.41 && x(1)<=0.68 || abs(x(0)-0.25)<=0.01 && x(1)>=0.41 && x(1)<=0.68
+                        || abs(-3.6*(x(0)-0.05)+0.86-x(1))<=0.03 && x(0)>=0.1 && x(0)<=0.175 && x(1)>=0.41 && x(1)<=0.68
+                        || abs(3.6*(x(0)-0.05)-0.04-x(1))<=0.03 && x(0)>=0.175 && x(0)<=0.24 && x(1)>=0.41 && x(1)<=0.68;
+
+            bool in_o = sqrt(pow(x(0)-0.39,2.0)+pow(x(1)-0.48,2.0)) <= r+0.05 &&
+                sqrt(pow(x(0)-0.39,2.0)+pow(x(1)-0.48,2.0)) >= r+0.03;
+
+            // Improved Letter S
+            // Corrected top arc of S (top-left)
+            bool top_S_1 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.61,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.61,2.0)) >= r + 0.03 &&
+                x(0) <= 0.6;
+
+            bool top_S_2 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.61,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.5835,2.0) + pow(x(1)-0.61,2.0)) >= r + 0.03 &&
+                x(0) >= 0.6 && x(1)>=0.61;
+
+            // Corrected bottom arc of S (bottom-right)
+            bool bottom_S_1 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) >= r + 0.03 &&
+                x(0) >= 0.6;
+
+            bool bottom_S_2 = sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) <= r + 0.05 &&
+                sqrt(pow(x(0)-0.585,2.0) + pow(x(1)-0.48,2.0)) >= r + 0.03 &&
+                x(0) <= 0.6 && x(1)<=0.48;
+
+            bool in_S = top_S_1 || top_S_2 || bottom_S_1 || bottom_S_2;
+
+
+            bool in_T = (
+                abs(x(0)-0.8)<=0.01 && x(1)>=0.41 && x(1)<=0.68 // vertical bar
+                ) || (
+                abs(x(1)-0.68)<=0.01 && x(0)>=0.7 && x(0)<=0.9); // top bar
+
+            bool MoST = in_M || in_o || in_S || in_T;
+            sigma_s = !MoST * 10.0;
+            break;
+        }
+        //*/
 
         default: 
         MFEM_ABORT("No sigma_aps for this benchmark!");
@@ -1032,6 +1129,16 @@ void source(const Vector &x, double t, Vector &q)
             MFEM_VERIFY(q(0) >= 0.0,"q0 not positive");
             MFEM_VERIFY(abs(q(1)) <= q(0) , "q not idp");
             break;
+        }
+        case 14:
+        {   
+            bool x_in = x(0) >= 0.4 && x(0) <= 0.6;
+            bool y_in = x(1) >= 0.1 && x(1) <= 0.2;
+            bool in_square = x_in && y_in;
+            q(0) = 1.0 * in_square;
+            q(2) = 0.9  * q(0);
+            break;
+
         }
 
 

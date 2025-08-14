@@ -481,3 +481,7 @@
 10.1159 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 
 7.01005 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 
 11.9651 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 2 -ode 1 -ft 3.2 -cfl 0.5 -vn Kershaw_SteadyState -ps 1000 
+1.95994 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 3 -fe 2 -ode 2 -ft 1.0 -cfl 0.5 -vn MoSt -ps 100 
+327.246 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 5 -fe 2 -ode 2 -ft 3.0 -cfl 0.5 -vn MoSt -ps 100 
+144.898 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 5 -fe 2 -ode 2 -ft 1.5 -cfl 0.5 -vn MoSt -ps 100 
+39685.7 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn MoSt_10S -i -ps 500 

@@ -305,6 +305,7 @@ int main(int argc, char *argv[])
             cout << "Initial condition saved as " << para_loc << "\n\n";
         }  
     } 
+    
     if(Mpi::Root())
     {
         cout << "Preprocessing done. Entering time stepping loop!\n";
