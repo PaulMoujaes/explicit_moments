@@ -485,3 +485,5 @@
 327.246 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 5 -fe 2 -ode 2 -ft 3.0 -cfl 0.5 -vn MoSt -ps 100 
 144.898 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 5 -fe 2 -ode 2 -ft 1.5 -cfl 0.5 -vn MoSt -ps 100 
 39685.7 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn MoSt_10S -i -ps 500 
+22.4675 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn 2beams1dL1 -io Beams -ps 1000 
+25.1393 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn 2beams1dL1 -io Beams -ps 1000 
