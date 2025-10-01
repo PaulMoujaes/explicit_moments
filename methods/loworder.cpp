@@ -6,6 +6,8 @@ LowOrder::LowOrder(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, Sy
 
 void LowOrder::Mult(const Vector &x, Vector &y) const    
 {   
+    MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
+    GetDiagOffDiagNodes(x, x_td, x_od);
     if(sys->timedependentSource)
     {
         sys->q->SetTime(t);
@@ -22,38 +24,36 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
         inflow.ProjectCoefficient(sys->bdrCond);
     }
 
-    MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
+    //bdr condition with ldofs because bdr edges are not shared
     Expbc(x, aux1);
+    aux1 += Source;
 
-    UpdateGlobalVector(x);
+    auto I_diag = C_diag[0]->GetI();
+    auto J_diag = C_diag[0]->GetJ();
+    auto I_offdiag = C_offdiag[0]->GetI();
+    auto J_offdiag = C_offdiag[0]->GetJ();
 
-    auto I = dofs.I;
-    auto J = dofs.J;
-    for(int i = 0; i < nDofs; i++)
+    for(int i = 0; i < TDnDofs; i++)
     {
-        int i_td = fes->GetLocalTDofNumber(i);
-        if(i_td == -1) {continue;}
-        int i_gl = fes->GetGlobalTDofNumber(i);
-
         for(int n = 0; n < numVar; n++)
         {   
-            ui(n) = x(i + n * nDofs);
+            ui(n) = x_td.GetBlock(n).Elem(i);
         }
 
-        for(int k = I[i_td]; k < I[i_td+1]; k++)
+        for(int k = I_diag[i]; k < I_diag[i+1]; k++)
         {
-            int j_gl = J[k];
-            if(j_gl == i_gl){continue;}
+            int j = J_diag[k];
+            if(i == j){continue;}
 
             for(int n = 0; n < numVar; n++)
             {   
-                uj(n) = x_gl[n]->Elem(j_gl);
+                uj(n) = x_td.GetBlock(n).Elem(j);
             }
 
             for(int d = 0; d < dim; d++)
             {   
-                cij(d) = C[d]->Elem(i_td,j_gl);
-                cji(d) = CT[d]->Elem(i_td,j_gl);
+                cij(d) = C_diag[d]->GetData()[k];
+                cji(d) = C_diag_T[d]->GetData()[k];
             }
 
             double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
@@ -66,15 +66,49 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 
             for(int n = 0; n < numVar; n++)
             {
-                aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+                rhs_td(i + n * TDnDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+            }
+        }
+
+        if(offdiagsize > 0)
+        {
+            for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
+            {
+                int j = J_offdiag[k];
+                //if(i == j){continue;}
+                MFEM_VERIFY( i != j, "offdiag j = i!");
+
+                for(int n = 0; n < numVar; n++)
+                {   
+                    uj(n) = x_od.GetBlock(n).Elem(j);
+                }
+
+                for(int d = 0; d < dim; d++)
+                {   
+                    cij(d) = C_offdiag[d]->GetData()[k];
+                    cji(d) = C_offdiag_T[d]->GetData()[k];
+                }
+
+                double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
+
+                sys->EvaluateFlux(ui, fluxEval_i);
+                sys->EvaluateFlux(uj, fluxEval_j);
+
+                fluxEval_j -= fluxEval_i;
+                fluxEval_j.Mult(cij, flux_j);
+
+                for(int n = 0; n < numVar; n++)
+                {
+                    rhs_td(i + n * TDnDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+                }
             }
         }
 
         // add source term 
-        for(int n = 0; n < numVar; n++)
-        {
-            aux1(i + n * nDofs) += Source(i + n * nDofs);
-        }
+        //for(int n = 0; n < numVar; n++)
+        //{
+        //    aux1(i + n * nDofs) += Source(i + n * nDofs);
+        //}
     }
 
     /*
@@ -87,6 +121,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
     updated = false;
 
     VSyncVector(aux1);
+    vfes->GetProlongationMatrix()->AddMult(rhs_td, aux1);
     One_over_MLpdtMLs.Mult(aux1, y);
     ML_over_MLpdtMLs_m1.AddMult(x, y, 1.0 / dt);
 }

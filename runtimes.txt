@@ -487,3 +487,6 @@
 39685.7 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn MoSt_10S -i -ps 500 
 22.4675 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn 2beams1dL1 -io Beams -ps 1000 
 25.1393 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn 2beams1dL1 -io Beams -ps 1000 
+0.00155139 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 2 -fe 0 -ode 2 -ft 0.45 -cfl 0.9 
+0.590587 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 2 -ft 0.45 -cfl 0.9 
+1.14486 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 2 -ft 0.45 -cfl 0.5 -vn diagofdiagtest -ps 100 

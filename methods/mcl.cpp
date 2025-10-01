@@ -19,7 +19,7 @@ MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
     auto I = dofs.I;
     auto J = dofs.J;
 
-    // for matrices where we need the full stenci cause non-symmetric
+    // for matrices where we need the full stencil cause non-symmetric
     SparseMatrix dummy_mat(TDnDofs, GLnDofs);
     for(int i = 0; i < nDofs; i++)
     {

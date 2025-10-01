@@ -11,7 +11,7 @@
 
 # Use the MFEM build directory.
 
-MFEM_DIR ?= ../../builds/MFEM
+MFEM_DIR ?= ../../builds/MFEM_debug
 CONFIG_MK = $(MFEM_DIR)/share/mfem/config.mk
 
 MFEM_LIB_FILE = mfem_is_not_built

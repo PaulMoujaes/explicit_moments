@@ -23,13 +23,18 @@ class FE_Evolution : public TimeDependentOperator
 
         // Parameters that are needed repeatedly
         const int dim, numVar, nDofs, nE, GLnDofs, TDnDofs;
+        int offdiagsize;
+        Array<int> offsets_diag, offsets_offdiag;
 
         SparseMatrix shared;
+
+        mutable BlockVector x_td, x_od;
 
         // Stuff for implicit fixed-point iteration
         //mutable SparseMatrix mD, T; // mD;
         //mutable DenseMatrix Block_ij, Identity_numVar;
         mutable Vector dbc, aux1, aux2;
+        mutable Vector rhs_td;
         mutable Vector ui, uj, vi, vj;
         //mutable DenseTensor fluxJac_i, fluxJac_j;
         mutable DenseMatrix fluxEval_i, fluxEval_j;
@@ -40,8 +45,8 @@ class FE_Evolution : public TimeDependentOperator
         DofInfo &dofs;
         mutable Array <int> vdofs;
         //Array <int> GlD_to_TD;
-        Array<SparseMatrix*> C_diag, C_offdiag, C_offdiag_T, C, CT;
-        mutable Array <Vector*> x_gl;
+        Array<SparseMatrix*> C_diag, C_diag_T, C_offdiag, C_offdiag_T, C, CT;
+        mutable Array <Vector*> x_gl, x_offdiag;
         mutable bool updated;
         mutable ParLinearForm Source_LF;
         Array<HypreParMatrix*> hpr_con, hpr_con_T;
@@ -71,6 +76,7 @@ class FE_Evolution : public TimeDependentOperator
         virtual double SteadyStateCheck(const Vector &u) const;
         virtual void Set_dt_Update_MLsigma(const double dt_);
         virtual void UpdateGlobalVector(const Vector &x) const;
+        virtual void GetDiagOffDiagNodes(const Vector &x, BlockVector &x_td, BlockVector &x_od) const;
         virtual void SyncVector(Vector &x) const;
         virtual void SyncVector_Min(Vector &x) const;
         virtual void SyncVector_Max(Vector &x) const;

@@ -10,8 +10,11 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), lumpedMassMatrix(lumpedMassMatrix_), numVar(sys_->numVar), pmesh(fes_->GetParMesh()),
     nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), 
     ML_inv(numVar * nDofs, numVar * nDofs), ML_over_MLpdtMLs_m1(numVar * nDofs, numVar * nDofs), One_over_MLpdtMLs(numVar * nDofs, numVar * nDofs),
-    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false), 
-    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes), Source_LF(vfes), C_diag(dim), C_offdiag(dim), C_offdiag_T(dim), hpr_con(dim), hpr_con_T(dim) 
+    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false), x_offdiag(numVar),
+    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes), Source_LF(vfes),
+
+    C_diag(dim), C_diag_T(dim), C_offdiag(dim), C_offdiag_T(dim), hpr_con(dim), hpr_con_T(dim),
+    offsets_diag(numVar +1), offsets_offdiag(numVar+1), rhs_td(TDnDofs * numVar)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -20,6 +23,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     }
 
     x_gl = NULL;
+
 
     // Just to make sure
     MFEM_ASSERT(nDofs == lumpedMassMatrix.Size(), "nDofs x VDim might be wrong!");
@@ -71,8 +75,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     for(int d = 0; d < dim; d++)
     {
         C_diag[d] = new SparseMatrix(nDofs, nDofs);
-        //C_offdiag[d] = new SparseMatrix(nDofs, nDofs);
-        C_offdiag_T[d] = new SparseMatrix(nDofs, nDofs);
+        C_diag_T[d] = new SparseMatrix(nDofs, nDofs);
     }
 
     auto I_ld = dofs.I_ld;
@@ -86,7 +89,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
             for(int d = 0; d < dim; d++)
             {
                 C_diag[d]->Set(i,j, Convection(i,j + d * nDofs));
-                C_offdiag_T[d]->Set(i,j, Convection_T(i + d * nDofs, j));
+                C_diag_T[d]->Set(i,j, Convection_T(i + d * nDofs, j));
             }
         }
     }
@@ -97,7 +100,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     for(int d = 0; d < dim; d++)
     {
         C_diag[d]->Finalize(0);
-        C_offdiag_T[d]->Finalize(0);
+        C_diag_T[d]->Finalize(0);
     }
     //*/
 
@@ -117,12 +120,28 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
         hpr_con[d]->GetDiag(*C_diag[d]);
         hpr_con[d]->GetOffd(*C_offdiag[d], cmap1);
 
-        hpr_con_T[d] = dummy.ParallelAssemble(C_offdiag_T[d]);
-        delete C_offdiag_T[d];
+        hpr_con_T[d] = dummy.ParallelAssemble(C_diag_T[d]);
+        delete C_diag_T[d];
+        C_diag_T[d] = new SparseMatrix;
         C_offdiag_T[d] = new SparseMatrix;
+        hpr_con_T[d]->GetDiag(*C_diag_T[d]);
         hpr_con_T[d]->GetOffd(*C_offdiag_T[d], cmap2);
     }
+
+    offdiagsize = C_diag[0]->Width();
+
+    for (int n = 0; n < numVar +1; n++) 
+    { 
+        offsets_diag[n] = n * TDnDofs; 
+        offsets_offdiag[n] = n * offdiagsize;
+    }
+    x_td.Update(offsets_diag);
+    x_td.UseDevice(true);
+    x_od.Update(offsets_offdiag);
+    x_od.UseDevice(true);
     
+    //cout << __LINE__ << endl;
+
     /*
     for(int d = 0; d < dim; d++)
     {
@@ -246,46 +265,64 @@ double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
 {
     //*
     double lambda_max = 0.0;
-    UpdateGlobalVector(x);
+    GetDiagOffDiagNodes(x, x_td, x_od);
 
-    auto I = dofs.I;
-    auto J = dofs.J;
+    auto I_diag = C_diag[0]->GetI();
+    auto J_diag = C_diag[0]->GetJ();
+    auto I_offdiag = C_offdiag[0]->GetI();
+    auto J_offdiag = C_offdiag[0]->GetJ();
 
-    for(int i = 0; i < nDofs; i++)
+    for(int i = 0; i < TDnDofs; i++)
     {
-        int i_td = fes->GetLocalTDofNumber(i);
-        if(i_td == -1) {continue;}
-        int i_gl = fes->GetGlobalTDofNumber(i);
-
         for(int n = 0; n < numVar; n++)
-        {
-            ui(n) = x(i + n * nDofs);
+        {   
+            ui(n) = x_td.GetBlock(n).Elem(i);
         }
 
         double  dij_sum = 0.0;
 
-        for(int k = I[i_td]; k < I[i_td+1]; k++)
+        for(int k = I_diag[i]; k < I_diag[i+1]; k++)
         {   
-            int j_gl = J[k];
-            if(j_gl == i_gl)
-            {
-                continue;
-            }
+            int j = J_diag[k];
+            if(i == j){continue;}
 
             for(int n = 0; n < numVar; n++)
             {   
-                uj(n) = x_gl[n]->Elem(j_gl);
+                uj(n) = x_td.GetBlock(n).Elem(j);
             }
 
             for(int d = 0; d < dim; d++)
             {   
-                // c_ij
-                cij(d) = C[d]->Elem(i_td,j_gl);
-                cji(d) = CT[d]->Elem(i_td,j_gl);
+                cij(d) = C_diag[d]->GetData()[k];
+                cji(d) = C_diag_T[d]->GetData()[k];
             }
 
             dij_sum += sys->ComputeDiffusion(cij, cji, ui, uj);
         }
+
+        if(offdiagsize > 0)
+        {
+            for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
+            {
+                int j = J_offdiag[k];
+                //if(i == j){continue;}
+                MFEM_VERIFY( i != j, "offdiag j = i!");
+
+                for(int n = 0; n < numVar; n++)
+                {   
+                    uj(n) = x_od.GetBlock(n).Elem(j);
+                }
+
+                for(int d = 0; d < dim; d++)
+                {   
+                    cij(d) = C_offdiag[d]->GetData()[k];
+                    cji(d) = C_offdiag_T[d]->GetData()[k];
+                }
+
+                dij_sum += sys->ComputeDiffusion(cij, cji, ui, uj);
+            }
+        }
+
         lambda_max = max(lambda_max, 2.0 * dij_sum / lumpedMassMatrix(i));
     }
     double glob_lambdamax;
@@ -424,6 +461,15 @@ void FE_Evolution::VSyncVector(Vector &x) const
     vgcomm.Bcast(sync);
 }
 
+
+void FE_Evolution::GetDiagOffDiagNodes(const Vector &x, BlockVector &x_td, BlockVector &x_od) const
+{
+    vfes->GetRestrictionMatrix()->Mult(x, x_td);
+    for(int n = 0; n < numVar; n++)
+    {
+        dofs.Extract_offd_hypre(hpr_con[0], x_td.GetBlock(n), x_od.GetBlock(n), offdiagsize);
+    }
+}
 
 void FE_Evolution::UpdateGlobalVector(const Vector &x) const
 {
