@@ -11,7 +11,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), 
     ML_inv(numVar * nDofs, numVar * nDofs), ML_over_MLpdtMLs_m1(numVar * nDofs, numVar * nDofs), One_over_MLpdtMLs(numVar * nDofs, numVar * nDofs),
     GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false), 
-    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes), Source_LF(vfes)
+    Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes), Source_LF(vfes), C_diag(dim), C_offdiag(dim), C_offdiag_T(dim), hpr_con(dim), hpr_con_T(dim) 
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -70,8 +70,9 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 
     for(int d = 0; d < dim; d++)
     {
-        C[d] = new SparseMatrix(nDofs, nDofs);
-        CT[d] = new SparseMatrix(nDofs, nDofs);
+        C_diag[d] = new SparseMatrix(nDofs, nDofs);
+        //C_offdiag[d] = new SparseMatrix(nDofs, nDofs);
+        C_offdiag_T[d] = new SparseMatrix(nDofs, nDofs);
     }
 
     auto I_ld = dofs.I_ld;
@@ -84,32 +85,54 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
             int j = J_ld[k];
             for(int d = 0; d < dim; d++)
             {
-                C[d]->Set(i,j, Convection(i,j + d * nDofs));
-                CT[d]->Set(i,j, Convection_T(i + d * nDofs, j));
+                C_diag[d]->Set(i,j, Convection(i,j + d * nDofs));
+                C_offdiag_T[d]->Set(i,j, Convection_T(i + d * nDofs, j));
             }
         }
     }
 
-    for(int d = 0; d < dim; d++)
-    {
-        C[d]->Finalize(0);
-        CT[d]->Finalize(0);
-    }
-
     ParBilinearForm dummy(fes);
 
+    //*
     for(int d = 0; d < dim; d++)
     {
-        HypreParMatrix *hpr = dummy.ParallelAssemble(C[d]);
-        delete C[d];
-        C[d] = new SparseMatrix;
-        hpr->MergeDiagAndOffd(*C[d]);
-
-        HypreParMatrix *hpr1 = dummy.ParallelAssemble(CT[d]);
-        delete CT[d];
-        CT[d] = new SparseMatrix;
-        hpr1->MergeDiagAndOffd(*CT[d]);
+        C_diag[d]->Finalize(0);
+        C_offdiag_T[d]->Finalize(0);
     }
+    //*/
+
+
+    for(int d = 0; d < dim; d++)
+    {
+        //C_diag[d]->Finalize(0);
+        //C_offdiag_T[d]->Finalize(0);
+
+        HYPRE_BigInt *cmap1 = NULL;
+        HYPRE_BigInt *cmap2 = NULL;
+        hpr_con[d] = dummy.ParallelAssemble(C_diag[d]);
+        delete C_diag[d];
+
+        C_diag[d] = new SparseMatrix;
+        C_offdiag[d] = new SparseMatrix;
+        hpr_con[d]->GetDiag(*C_diag[d]);
+        hpr_con[d]->GetOffd(*C_offdiag[d], cmap1);
+
+        hpr_con_T[d] = dummy.ParallelAssemble(C_offdiag_T[d]);
+        delete C_offdiag_T[d];
+        C_offdiag_T[d] = new SparseMatrix;
+        hpr_con_T[d]->GetOffd(*C_offdiag_T[d], cmap2);
+    }
+    
+    /*
+    for(int d = 0; d < dim; d++)
+    {
+        C_diag[d]->Print();
+        C_offdiag[d]->Print();
+        C_offdiag_T[d]->Print();
+
+    }
+    MFEM_ABORT("Alles gut")
+    //*/
 
     sys->bdrCond.SetTime(0.0);
     inflow.ProjectCoefficient(sys->bdrCond);

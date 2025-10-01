@@ -27,6 +27,8 @@ class DofInfo
         virtual void BuildDofToDofTable() const;
         virtual void BuildElementToBdrElementTable() const;
         virtual void BuildNormals();
+        virtual void Extract_offd_hypre(mfem::HypreParMatrix *const mat, const mfem::Vector &x, mfem::Vector &y, const int offd_width);
+        virtual HYPRE_Int Extract_offdiagonals(hypre_ParCSRMatrix *A, hypre_ParVector *x, hypre_ParVector *y);
 };
 
 #endif

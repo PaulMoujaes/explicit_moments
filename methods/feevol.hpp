@@ -40,10 +40,11 @@ class FE_Evolution : public TimeDependentOperator
         DofInfo &dofs;
         mutable Array <int> vdofs;
         //Array <int> GlD_to_TD;
-        Array<SparseMatrix*> C, CT;
+        Array<SparseMatrix*> C_diag, C_offdiag, C_offdiag_T, C, CT;
         mutable Array <Vector*> x_gl;
         mutable bool updated;
         mutable ParLinearForm Source_LF;
+        Array<HypreParMatrix*> hpr_con, hpr_con_T;
 
         mutable SparseMatrix ML_over_MLpdtMLs_m1, One_over_MLpdtMLs;
         SparseMatrix ML_inv;
