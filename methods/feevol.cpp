@@ -95,20 +95,10 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     }
 
     ParBilinearForm dummy(fes);
-
-    //*
     for(int d = 0; d < dim; d++)
     {
         C_diag[d]->Finalize(0);
         C_diag_T[d]->Finalize(0);
-    }
-    //*/
-
-
-    for(int d = 0; d < dim; d++)
-    {
-        //C_diag[d]->Finalize(0);
-        //C_offdiag_T[d]->Finalize(0);
 
         HYPRE_BigInt *cmap1 = NULL;
         HYPRE_BigInt *cmap2 = NULL;
@@ -128,7 +118,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
         hpr_con_T[d]->GetOffd(*C_offdiag_T[d], cmap2);
     }
 
-    offdiagsize = C_diag[0]->Width();
+    offdiagsize = C_offdiag[0]->Width();
 
     for (int n = 0; n < numVar +1; n++) 
     { 

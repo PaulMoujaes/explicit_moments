@@ -6,7 +6,7 @@ DofInfo::DofInfo(ParFiniteElementSpace *fes_):
     ParBilinearForm M(fes);
     M.AddDomainIntegrator(new MassIntegrator());
     M.Assemble();
-    M.Finalize();
+    M.Finalize(0);
     massmatrix_ld = M.SpMat();
     HypreParMatrix *MHP = M.ParallelAssemble();
     MHP->MergeDiagAndOffd(massmatrix);

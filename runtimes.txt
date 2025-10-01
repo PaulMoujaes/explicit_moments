@@ -490,3 +490,19 @@
 0.00155139 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 2 -fe 0 -ode 2 -ft 0.45 -cfl 0.9 
 0.590587 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 2 -ft 0.45 -cfl 0.9 
 1.14486 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 2 -ft 0.45 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.0115459 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.0045 -cfl 0.5 -vn diagofdiagtest_old -ps 100 
+0.0112916 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.0045 -cfl 0.5 -vn diagofdiagtest_old -ps 100 
+0.329303 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.45 -cfl 0.5 -vn diagofdiagtest_old -ps 100 
+0.339901 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.45 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.220018 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.3 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.134209 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.3 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.219931 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.261092 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 100 
+1.29027 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/periodic-4segment.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 100 
+1.30111 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 1 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.350082 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.362631 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 100 
+0.281778 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 500 
+0.109273 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 500 
+0.2707 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 500 
+0.103992 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 1 -ft 0.5 -cfl 0.5 -vn diagofdiagtest -ps 500 

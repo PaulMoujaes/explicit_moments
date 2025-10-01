@@ -8,13 +8,14 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 {   
     MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     GetDiagOffDiagNodes(x, x_td, x_od);
+    rhs_td = 0.0;
     if(sys->timedependentSource)
     {
         sys->q->SetTime(t);
         Source_LF.LinearForm::operator=(0.0); 
         Source_LF.Assemble();
         Source = Source_LF;
-        VSyncVector(Source);
+        //VSyncVector(Source);
         //cout << Source.Norml2()<< endl;
     }
     
@@ -27,6 +28,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
     //bdr condition with ldofs because bdr edges are not shared
     Expbc(x, aux1);
     aux1 += Source;
+    VSyncVector(aux1);
 
     auto I_diag = C_diag[0]->GetI();
     auto J_diag = C_diag[0]->GetJ();
@@ -119,8 +121,6 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
     //*/
 
     updated = false;
-
-    VSyncVector(aux1);
     vfes->GetProlongationMatrix()->AddMult(rhs_td, aux1);
     One_over_MLpdtMLs.Mult(aux1, y);
     ML_over_MLpdtMLs_m1.AddMult(x, y, 1.0 / dt);
