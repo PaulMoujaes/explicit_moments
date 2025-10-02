@@ -188,7 +188,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     Source_LF.AddDomainIntegrator(new VectorDomainLFIntegrator(*sys->q));
     Source_LF.Assemble();
     Source = Source_LF;
-    VSyncVector(Source);
+    //VSyncVector(Source);
 
     for(int i = 0; i < nDofs; i++)
     {
