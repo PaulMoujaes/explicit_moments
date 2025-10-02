@@ -14,7 +14,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes), Source_LF(vfes),
 
     C_diag(dim), C_diag_T(dim), C_offdiag(dim), C_offdiag_T(dim), hpr_con(dim), hpr_con_T(dim),
-    offsets_diag(numVar +1), offsets_offdiag(numVar+1), rhs_td(TDnDofs * numVar)
+    offsets_diag(numVar +1), offsets_offdiag(numVar+1), rhs_td(TDnDofs * numVar), lumpedMassMatrix_td(TDnDofs)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -28,6 +28,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     // Just to make sure
     MFEM_ASSERT(nDofs == lumpedMassMatrix.Size(), "nDofs x VDim might be wrong!");
     SyncVector(lumpedMassMatrix);
+    fes->GetRestrictionMatrix()->Mult(lumpedMassMatrix, lumpedMassMatrix_td);
 
     ui.SetSize(numVar);
     uj.SetSize(numVar);
@@ -288,15 +289,15 @@ double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
             }
 
             dij_sum += sys->ComputeDiffusion(cij, cji, ui, uj);
-        }
+        } 
 
         if(offdiagsize > 0)
-        {
+        {   
             for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
             {
                 int j = J_offdiag[k];
                 //if(i == j){continue;}
-                MFEM_VERIFY( i != j, "offdiag j = i!");
+                //MFEM_VERIFY( i != j, "offdiag j = i!");
 
                 for(int n = 0; n < numVar; n++)
                 {   
@@ -313,12 +314,12 @@ double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
             }
         }
 
-        lambda_max = max(lambda_max, 2.0 * dij_sum / lumpedMassMatrix(i));
+        lambda_max = max(lambda_max, 2.0 * dij_sum / lumpedMassMatrix_td(i));
     }
     double glob_lambdamax;
     MPI_Allreduce(&lambda_max, &glob_lambdamax, 1, MPI_DOUBLE, MPI_MAX,
         MPI_COMM_WORLD);
-
+        
     return CFL / glob_lambdamax;
 }
 

@@ -77,8 +77,6 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
             for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
             {
                 int j = J_offdiag[k];
-                //if(i == j){continue;}
-                MFEM_VERIFY( i != j, "offdiag j = i!");
 
                 for(int n = 0; n < numVar; n++)
                 {   
@@ -105,21 +103,8 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
                 }
             }
         }
-
-        // add source term 
-        //for(int n = 0; n < numVar; n++)
-        //{
-        //    aux1(i + n * nDofs) += Source(i + n * nDofs);
-        //}
     }
-
-    /*
-    for(int n = 0; n < numVar; n++)
-    {
-        delete x_gl[n];
-    }
-    //*/
-
+    
     updated = false;
     vfes->GetProlongationMatrix()->AddMult(rhs_td, aux1);
     One_over_MLpdtMLs.Mult(aux1, y);

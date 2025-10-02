@@ -56,7 +56,7 @@ class FE_Evolution : public TimeDependentOperator
 
         mutable HypreParVector aux_hpr;
 
-        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps;
+        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps, lumpedMassMatrix_td;
         mutable Vector Source;
 
         SparseMatrix M_sigma_a, M_sigma_aps;
