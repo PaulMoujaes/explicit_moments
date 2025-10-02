@@ -132,37 +132,6 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
     // positivity fix
     #if PositivityFix == 1
 
-        /*
-        for(int i = 0; i < nDofs; i++)
-        {   
-            int i_td = fes->GetLocalTDofNumber(i);
-            if(i_td == -1) {continue;}
-            int i_gl = fes->GetGlobalTDofNumber(i);
-
-            for(int k = I[i_td]; k < I[i_td+1]; k++)
-            {
-                int j_gl = J[k];
-                if(j_gl == i_gl){continue;}
-
-                double dij = CalcBarState_returndij(i, j_gl, uij, uji);
-                for(int n = 0; n < numVar; n++)
-                {
-                    uij(n) += 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;  
-                    uji(n) -= 0.5 * fij_gl[n]->Elem(i_td, j_gl) / dij;
-                }
-
-                if(!sys->Admissible(uij) || !sys->Admissible(uij))
-                {
-                    for(int n = 0; n < numVar; n++)
-                    {
-                        fij_gl[n]->Elem(i_td, j_gl) = 0.0;
-                    }
-                }
-                
-            }
-        }
-        //*/
-
         //*
         for(int i = 0; i < nDofs; i++)
         {   
