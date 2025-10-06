@@ -1,7 +1,7 @@
 #include "system.hpp"
 
 System::System(ParFiniteElementSpace *vfes_, BlockVector &ublock, int numVar_, SystemConfiguration &config_, VectorFunctionCoefficient bdrCond_):
-      vfes(vfes_), u0(vfes_, ublock), numVar(numVar_), bdrCond(bdrCond_), dim(vfes_->GetMesh()->Dimension()), ui(numVar)
+      vfes(vfes_), u0(vfes_, ublock), numVar(numVar_), bdrCond(bdrCond_), dim(vfes_->GetMesh()->Dimension()), ui(numVar), flux1_c(numVar), flux2_c(numVar)
 {
 
    flux1.SetSize(numVar, dim);
@@ -54,6 +54,29 @@ double System::ComputeLambdaij(const Vector &n, const Vector &u1, const Vector &
    n1 /= n.Norml2();
 
    return max(abs(GetWaveSpeed(u1, n1)), abs(GetWaveSpeed(u2, n1)));
+}
+
+double System::CalcBarState_returndij(const Vector &ui, const Vector &uj, const Vector &cij, const Vector &cji, Vector &uij, Vector &uji) const
+{
+   double dij = ComputeDiffusion(cij, cji, ui, uj);
+   EvaluateFlux(ui, flux1);
+   EvaluateFlux(uj, flux2);
+   flux1.Mult(cij, flux1_c);
+   flux2.Mult(cij, flux1_c);
+
+   for(int n = 0; n < numVar; n++)
+   {   
+      uij(n) = 0.5 * ((ui(n) + uj(n)) - (flux1_c(n) - flux1_c(n)) / dij ) ;
+   }
+   flux1.Mult(cji, flux1_c);
+   flux2.Mult(cji, flux2_c);
+
+   for(int n = 0; n < numVar; n++)
+   {   
+      uji(n) = 0.5 * ((ui(n) + uj(n)) - (flux1_c(n) - flux2_c(n)) / dij ) ;
+   }
+
+   return dij;
 }
 
 

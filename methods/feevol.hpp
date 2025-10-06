@@ -15,11 +15,7 @@ class FE_Evolution : public TimeDependentOperator
         ParMesh *pmesh;
         mutable ParGridFunction inflow;
         System *sys;
-        //mutable double t;
         int intorder;
-        //mutable bool targetScheme;
-
-        //mutable Array<double> sync, vsync;
 
         // Parameters that are needed repeatedly
         const int dim, numVar, nDofs, nE, GLnDofs, TDnDofs;
@@ -46,7 +42,7 @@ class FE_Evolution : public TimeDependentOperator
         mutable Array <int> vdofs;
         //Array <int> GlD_to_TD;
         Array<SparseMatrix*> C_diag, C_diag_T, C_offdiag, C_offdiag_T, C, CT;
-        mutable Array <Vector*> x_gl, x_offdiag;
+        mutable Array <Vector*> x_gl;
         mutable bool updated;
         mutable ParLinearForm Source_LF;
         Array<HypreParMatrix*> hpr_con, hpr_con_T;
@@ -56,7 +52,8 @@ class FE_Evolution : public TimeDependentOperator
 
         mutable HypreParVector aux_hpr;
 
-        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps, lumpedMassMatrix_td;
+        Vector lumpedMassMatrix, Mlumped_sigma_a, Mlumped_sigma_aps ;
+        Vector lumpedMassMatrix_td, Mlumped_sigma_a_td, Mlumped_sigma_aps_td;
         mutable Vector Source;
 
         SparseMatrix M_sigma_a, M_sigma_aps;
@@ -77,6 +74,7 @@ class FE_Evolution : public TimeDependentOperator
         virtual void Set_dt_Update_MLsigma(const double dt_);
         virtual void UpdateGlobalVector(const Vector &x) const;
         virtual void GetDiagOffDiagNodes(const Vector &x, BlockVector &x_td, BlockVector &x_od) const;
+        virtual void GetOffDiagNodes(const BlockVector &x_td, BlockVector &x_od) const;
         virtual void SyncVector(Vector &x) const;
         virtual void SyncVector_Min(Vector &x) const;
         virtual void SyncVector_Max(Vector &x) const;

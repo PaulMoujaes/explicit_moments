@@ -26,9 +26,9 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
     }
 
     //bdr condition with ldofs because bdr edges are not shared
+    // all in ldofs
     Expbc(x, aux1);
     aux1 += Source;
-    VSyncVector(aux1);
 
     auto I_diag = C_diag[0]->GetI();
     auto J_diag = C_diag[0]->GetJ();
@@ -105,7 +105,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
         }
     }
     
-    updated = false;
+    VSyncVector(aux1);
     vfes->GetProlongationMatrix()->AddMult(rhs_td, aux1);
     One_over_MLpdtMLs.Mult(aux1, y);
     ML_over_MLpdtMLs_m1.AddMult(x, y, 1.0 / dt);

@@ -509,3 +509,7 @@
 452.058 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 2 -ft 3.2 -cfl 0.5 -vn diagofdiagtest -ps 200 
 449.339 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 7 -fe 0 -ode 2 -ft 3.2 -cfl 0.5 -vn diagofdiagtest_1 -ps 200 
 5685.79 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 9 -fe 0 -ode 2 -ft 3.2 -cfl 0.5 -vn cluster1 -ps 1000 
+6.96851 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 5 -fe 2 -ode 2 -ft 3.2 -cfl 0.5 -vn diagofdiagtest_1 
+0.608387 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 3 -fe 0 -ode 2 -ft 3.2 -cfl 0.5 -vn diagofdiagtest_1 
+20.5972 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 3 -fe 1 -ode 2 -ft 3.2 -cfl 0.1 -vn diagofdiagtest_1 -ps 6 
+83.1344 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 3 -fe 1 -ode 2 -ft 3.2 -cfl 0.1 -vn diagofdiagtest_1 -ps 6 

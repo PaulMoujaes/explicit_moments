@@ -27,6 +27,7 @@ class System
         virtual void SetBoundaryConditions(const Vector &y1, Vector &y2, const Vector &normal, int attr) const = 0;
         virtual double ComputeLambdaij(const Vector &n, const Vector &u1, const Vector &u2) const;
         virtual double ComputeDiffusion(const Vector &cij, const Vector &cji, const Vector &u1, const Vector &u2) const;
+        virtual double CalcBarState_returndij(const Vector &ui, const Vector &uj, const Vector &cij, const Vector &cji, Vector &uij, Vector &uji) const;
         virtual void ComputeLaxFriedrichsFlux(const Vector &x1, const Vector &x2, const Vector &normal, Vector &y) const;
         virtual double GetIntWaveSpeed(const Vector &u, const Vector &x) const {MFEM_ABORT("Not implemented for this system!") return 0.0;};
         virtual void ComputeErrors(Array<double> & errors, const ParGridFunction &u, double domainSize, const double t) const {};
@@ -49,6 +50,7 @@ class System
         mutable Vector ui;
         const char* problemName;
         double collision_coeff = 0.0;
+        mutable Vector flux1_c, flux2_c;
 };
 
 #endif

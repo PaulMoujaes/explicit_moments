@@ -10,11 +10,11 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     fes(fes_), vfes(vfes_), sys(sys_), dim(fes_->GetParMesh()->Dimension()), lumpedMassMatrix(lumpedMassMatrix_), numVar(sys_->numVar), pmesh(fes_->GetParMesh()),
     nDofs(fes_->GetNDofs()), dofs(dofs_), nE(fes->GetNE()), inflow(vfes), res_gf(vfes), gcomm(fes->GroupComm()), vgcomm(vfes->GroupComm()), 
     ML_inv(numVar * nDofs, numVar * nDofs), ML_over_MLpdtMLs_m1(numVar * nDofs, numVar * nDofs), One_over_MLpdtMLs(numVar * nDofs, numVar * nDofs),
-    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false), x_offdiag(numVar),
+    GLnDofs(fes->GlobalTrueVSize()), TDnDofs(fes->GetTrueVSize()), aux_hpr(fes), C(dim), CT(dim), x_gl(numVar), updated(false),
     Mlumped_sigma_a(nDofs), Mlumped_sigma_aps(nDofs), uOld(vfes), Source_LF(vfes),
 
     C_diag(dim), C_diag_T(dim), C_offdiag(dim), C_offdiag_T(dim), hpr_con(dim), hpr_con_T(dim),
-    offsets_diag(numVar +1), offsets_offdiag(numVar+1), rhs_td(TDnDofs * numVar), lumpedMassMatrix_td(TDnDofs)
+    offsets_diag(numVar +1), offsets_offdiag(numVar+1), rhs_td(TDnDofs * numVar), lumpedMassMatrix_td(TDnDofs), Mlumped_sigma_a_td(TDnDofs), Mlumped_sigma_aps_td(TDnDofs)
 {
     const char* fecol = fes->FEColl()->Name();
     if (strncmp(fecol, "H1", 2))
@@ -130,19 +130,6 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     x_td.UseDevice(true);
     x_od.Update(offsets_offdiag);
     x_od.UseDevice(true);
-    
-    //cout << __LINE__ << endl;
-
-    /*
-    for(int d = 0; d < dim; d++)
-    {
-        C_diag[d]->Print();
-        C_offdiag[d]->Print();
-        C_offdiag_T[d]->Print();
-
-    }
-    MFEM_ABORT("Alles gut")
-    //*/
 
     sys->bdrCond.SetTime(0.0);
     inflow.ProjectCoefficient(sys->bdrCond);
@@ -189,6 +176,9 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     Source_LF.Assemble();
     Source = Source_LF;
     //VSyncVector(Source);
+
+    fes->GetRestrictionMatrix()->Mult(Mlumped_sigma_a, Mlumped_sigma_a_td);
+    fes->GetRestrictionMatrix()->Mult(Mlumped_sigma_aps, Mlumped_sigma_aps_td);
 
     for(int i = 0; i < nDofs; i++)
     {
@@ -461,6 +451,15 @@ void FE_Evolution::GetDiagOffDiagNodes(const Vector &x, BlockVector &x_td, Block
         dofs.Extract_offd_hypre(hpr_con[0], x_td.GetBlock(n), x_od.GetBlock(n), offdiagsize);
     }
 }
+
+void FE_Evolution::GetOffDiagNodes(const BlockVector &x_td, BlockVector &x_od) const
+{
+    for(int n = 0; n < numVar; n++)
+    {
+        dofs.Extract_offd_hypre(hpr_con[0], x_td.GetBlock(n), x_od.GetBlock(n), offdiagsize);
+    }
+}
+
 
 void FE_Evolution::UpdateGlobalVector(const Vector &x) const
 {

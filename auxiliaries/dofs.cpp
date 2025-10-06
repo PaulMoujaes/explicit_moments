@@ -1,7 +1,7 @@
 #include "dofs.hpp"
 
 DofInfo::DofInfo(ParFiniteElementSpace *fes_): 
-    pmesh(fes_->GetParMesh()), fes(fes_), dim(fes_->GetParMesh()->Dimension()), nDofs(fes->GetNDofs()), normals(fes->GetNBE(), dim), ElementToBdrElementTable(NULL), DofToDofTable(NULL)
+    pmesh(fes_->GetParMesh()), fes(fes_), dim(fes_->GetParMesh()->Dimension()), nDofs(fes->GetNDofs()), normals(fes->GetNBE(), dim)
 {
     ParBilinearForm M(fes);
     M.AddDomainIntegrator(new MassIntegrator());
@@ -18,19 +18,11 @@ DofInfo::DofInfo(ParFiniteElementSpace *fes_):
     I_ld = massmatrix_ld.GetI();
     J_ld = massmatrix_ld.GetJ();
 
-    /*
-    BuildDofToDofTable();
-    BuildElementToBdrElementTable();
-    //*/
-
     BuildNormals();
 }
 
 DofInfo::~DofInfo() 
-{   
-    if(DofToDofTable){delete DofToDofTable;}
-    if(ElementToBdrElementTable){delete ElementToBdrElementTable;}
-}
+{   }
 
 void DofInfo::BuildNormals()
 {
@@ -65,71 +57,6 @@ void DofInfo::BuildNormals()
         }
     }
 }
-
-
-void DofInfo::BuildElementToBdrElementTable() const
-{
-    int nE = fes->GetNE();
-    int nBe = fes->GetNBE();
-    Table *ElementToBdrElementTable1 = new Table();
-
-    ElementToBdrElementTable1->MakeI(nE);
-
-    for(int be = 0; be < nBe; be++)
-    {
-        auto trans = pmesh->GetBdrFaceTransformations(be);
-        ElementToBdrElementTable1->AddAColumnInRow(trans->Elem1No);
-    } 
-
-    ElementToBdrElementTable1->MakeJ();
-    for(int be = 0; be < nBe; be++)
-    {
-        auto trans = pmesh->GetBdrFaceTransformations(be);
-        ElementToBdrElementTable1->AddConnection(trans->Elem1No, be);
-    } 
-
-    ElementToBdrElementTable1->ShiftUpI();
-    ElementToBdrElementTable1->Finalize();
-    ElementToBdrElementTable = ElementToBdrElementTable1;
-}
-
-void DofInfo::BuildDofToDofTable() const
-{
-    Table *DofToDofTable1 = new Table();
-    int nDofs = fes->GetNDofs();
-
-    DofToDofTable1->MakeI(nDofs);
-
-    const auto II = massmatrix.ReadI();
-    const auto JJ = massmatrix.ReadJ();
-
-    for(int i = 0; i < nDofs; i ++)
-    {
-        const int begin = II[i];
-        const int end = II[i+1];
-
-        for(int j = begin; j < end; j++)
-        {
-            DofToDofTable1->AddAColumnInRow(i);
-        }
-    }
-
-    DofToDofTable1->MakeJ();
-    for(int i = 0; i < nDofs; i ++)
-    {
-        const int begin = II[i];
-        const int end = II[i+1];
-        for(int j = begin; j < end; j++)
-        {
-            DofToDofTable1->AddConnection(i, JJ[j]);
-        }
-    }
-
-    DofToDofTable1->ShiftUpI();
-    DofToDofTable1->Finalize();
-    DofToDofTable = DofToDofTable1;
-}
-
 
 HYPRE_Int DofInfo::Extract_offdiagonals(hypre_ParCSRMatrix *A, hypre_ParVector *x, hypre_ParVector *y)
 {
