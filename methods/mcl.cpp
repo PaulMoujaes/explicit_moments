@@ -300,7 +300,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
             for(int n = 0; n < numVar; n++)
             {
                 double mij_sigma = 0.0; // (n == 0) * dofs.GetElem(i, j, M_sigma_a_diag) + (n > 0) * dofs.GetElem(i, j, M_sigma_aps_diag); // TODO
-                double mij = 0.0; // dofs.M_diag(i,j); // TODO
+                double mij = dofs.M_diag(i,j); // TODO
                 //MFEM_VERIFY(abs(dofs.M_diag(i,j) - dofs.M_diag.GetData()[k]) < 1e-15, to_string(dofs.M_diag(i,j)) + " irgendwat passte net "+ to_string(dofs.M_diag.GetData()[k]));
                 const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_td.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                 double fij_star;
@@ -418,7 +418,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
                 for(int n = 0; n < numVar; n++)
                 {
                     double mij_sigma = 0.0; // (n == 0) * dofs.GetElem(i, j, M_sigma_a_offdiag) + (n > 0) * dofs.GetElem(i, j, M_sigma_aps_offdiag); // TODO
-                    double mij = 0.0;//  dofs.M_offdiag(i,j); // TODO
+                    double mij = dofs.M_offdiag(i,j); // TODO
                 //MFEM_VERIFY(abs(dofs.M_diag(i,j) - dofs.M_diag.GetData()[k]) < 1e-15, to_string(dofs.M_diag(i,j)) + " irgendwat passte net "+ to_string(dofs.M_diag.GetData()[k]));
                     const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_od.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                     double fij_star;
