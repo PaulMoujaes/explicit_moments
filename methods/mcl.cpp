@@ -31,6 +31,8 @@ MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
     umax_od.Update(offsets_offdiag);
     umax_od.UseDevice(true);
 
+
+    /*
     auto I = dofs.I;
     auto J = dofs.J;
 
@@ -58,6 +60,7 @@ MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
         fij_gl[n] = new SparseMatrix(TDnDofs, GLnDofs);
         *fij_gl[n] = dummy_mat;
     }
+    //*/
 }
 
 void MCL::Mult(const Vector &x, Vector &y) const
@@ -258,6 +261,7 @@ void MCL::CalcMinMax(const BlockVector &x_td, const BlockVector &x_od) const
 
 void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector &x_od, const Vector &dbc, const Vector &Source, Vector &AntiDiffFluxes) const
 {   
+    MFEM_VERIFY(AntiDiffFluxes.Size() == TDnDofs * numVar, "wrong size adf")
     AntiDiffFluxes = 0.0;
     CalcUdot(x_td, x_od, dbc, Source);
     CalcMinMax(x_td, x_od);
@@ -277,6 +281,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
         for(int k = I_diag[i]; k < I_diag[i+1]; k++)
         {
             int j = J_diag[k];
+            //cout << J_diag[k] << ", " << M_sigma_a_diag.GetJ()[k] << endl;
             if(i == j){continue;}
 
             for(int n = 0; n < numVar; n++)
@@ -294,8 +299,9 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
 
             for(int n = 0; n < numVar; n++)
             {
-                double mij_sigma = (n == 0) * M_sigma_a(i, j) + (n > 0) * M_sigma_aps(i, j); // TODO
-                double mij = dofs.massmatrix(i, j); // TODO
+                double mij_sigma = 0.0; // (n == 0) * dofs.GetElem(i, j, M_sigma_a_diag) + (n > 0) * dofs.GetElem(i, j, M_sigma_aps_diag); // TODO
+                double mij = 0.0; // dofs.M_diag(i,j); // TODO
+                //MFEM_VERIFY(abs(dofs.M_diag(i,j) - dofs.M_diag.GetData()[k]) < 1e-15, to_string(dofs.M_diag(i,j)) + " irgendwat passte net "+ to_string(dofs.M_diag.GetData()[k]));
                 const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_td.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                 double fij_star;
             
@@ -385,6 +391,125 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
             for(int n = 0; n < numVar; n++)
             {
                 AntiDiffFluxes(i + n * TDnDofs) += fij_vec(n);
+            }
+        }
+
+
+        if(offdiagsize > 0)
+        {
+            for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
+            {
+                int j = J_offdiag[k];
+                //cout << J_offdiag[k] << ", " << M_sigma_a_offdiag.GetJ()[k] << endl;
+
+                for(int n = 0; n < numVar; n++)
+                {   
+                    uj(n) = x_od.GetBlock(n).Elem(j);
+                }
+
+                for(int d = 0; d < dim; d++)
+                {   
+                    cij(d) = C_offdiag[d]->GetData()[k];
+                    cji(d) = C_offdiag_T[d]->GetData()[k];
+                }
+
+                double dij = sys->CalcBarState_returndij(ui, uj, cij, cji, uij, uji);
+
+                for(int n = 0; n < numVar; n++)
+                {
+                    double mij_sigma = 0.0; // (n == 0) * dofs.GetElem(i, j, M_sigma_a_offdiag) + (n > 0) * dofs.GetElem(i, j, M_sigma_aps_offdiag); // TODO
+                    double mij = 0.0;//  dofs.M_offdiag(i,j); // TODO
+                //MFEM_VERIFY(abs(dofs.M_diag(i,j) - dofs.M_diag.GetData()[k]) < 1e-15, to_string(dofs.M_diag(i,j)) + " irgendwat passte net "+ to_string(dofs.M_diag.GetData()[k]));
+                    const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_od.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
+                    double fij_star;
+            
+                    if( fij_> 0)
+                    {
+                        double fij_min = 2.0 * dij * (umax_td.GetBlock(n).Elem(i) - uij(n));
+                        double fij_max = 2.0 * dij * (uji(n) - umin_od.GetBlock(n).Elem(j));
+                        double fij_bound = min(fij_max, fij_min);
+                
+                        fij_star = min(fij_, fij_bound);
+                        fij_star = max(0.0, fij_star);
+                    }
+                    else
+                    {
+                        double fij_min = 2.0 * dij * (umin_td.GetBlock(n).Elem(i) - uij(n));
+                        double fij_max = 2.0 * dij* (uji(n) - umax_od.GetBlock(n).Elem(j));
+                        double fij_bound = max(fij_max, fij_min);
+
+                        fij_star = max(fij_, fij_bound); 
+                        fij_star= min(0.0 , fij_star);
+                    }
+
+                    MFEM_ASSERT(abs(fij_star) <= abs(fij_) + 1e-15, "a_ij density wrong!");
+            
+                    fij_vec(n) = fij_star;
+                }
+            
+                #if PositivityFix == 1
+
+                    double psi1_ij_sq = 0.0;
+                    double psi1_ji_sq = 0.0;
+
+                    double f1_ij_sq = 0.0;
+
+                    double f1p1_ij = 0.0;
+                    double f1p1_ji = 0.0;
+
+                    for(int d = 0; d < dim; d++)
+                    {
+                        f1_ij_sq += fij_vec(d+1) * fij_vec(d+1);
+
+                        psi1_ij_sq += uij(d+1) * uij(d+1);
+                        psi1_ji_sq += uji(d+1) * uji(d+1);
+                    
+                        f1p1_ij += uij(d+1) * fij_vec(d+1);
+                        f1p1_ji += - fij_vec(d+1) * uji(d+1);
+                    }
+
+                    double f1_ji_sq = f1_ij_sq; // fij = - fji => fij^2 = fji^2
+                    double f0_ij = fij_vec(0);
+                    double f0_ji = - f0_ij;
+
+                    double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
+                    double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
+                
+                    Qij *= 1.0 - 1e-13;
+                    Qji *= 1.0 - 1e-13;
+
+                    double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
+                    double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
+
+                    double aij = Qij / Rij;
+                    double aji = Qji / Rji;
+                
+                    double alpha = 1.0;
+                    if(Rij > Qij && Rji > Qji)
+                    {
+                        alpha = min(aij, aji);
+                    }
+                    else if( Rij > Qij && Rji <= Qji)
+                    {
+                        alpha = aij;
+                    }
+                    else if( Rij <= Qij && Rji > Qji)
+                    {
+                        alpha = aji;
+                    }
+
+                    MFEM_VERIFY(alpha >= -1e-15 && alpha <= 1.0 +1e-15, "alpha_pa not in [0,1]!");
+                
+                    alpha = max(0.0, alpha);
+                    alpha = min(1.0, alpha);
+                
+                    fij_vec *= alpha;
+                #endif
+
+                for(int n = 0; n < numVar; n++)
+                {
+                    AntiDiffFluxes(i + n * TDnDofs) += fij_vec(n);
+                }
             }
         }
     }

@@ -115,6 +115,7 @@ void LowOrder::Mult(const Vector &x, Vector &y) const
 
 void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const 
 {  
+    /*
     UpdateGlobalVector(x);
     aux1 = 0.0;
     Expbc(x, aux1);
@@ -171,4 +172,5 @@ void LowOrder::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &r
 
     VSyncVector(aux1);
     ML_inv.Mult(aux1, res);
+    //*/
 }

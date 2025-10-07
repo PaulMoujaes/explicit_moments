@@ -179,7 +179,7 @@ void MCL_Comp::ComputeAntiDiffusiveFluxes(const Vector &x, const Vector &dbc, Ve
                 
                 //Qij = max(Qij, 0.0);
                 //Qji = max(Qji, 0.0);
-                Qij *= 1.0 - 1e-13;
+                Qij *= 1.0 - 1e-15;
                 Qji *= 1.0 - 1e-13;
 
                 double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));

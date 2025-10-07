@@ -8,15 +8,39 @@ DofInfo::DofInfo(ParFiniteElementSpace *fes_):
     M.Assemble();
     M.Finalize(0);
     massmatrix_ld = M.SpMat();
-    HypreParMatrix *MHP = M.ParallelAssemble();
-    MHP->MergeDiagAndOffd(massmatrix);
-    //massmatrix = M.SpMat();
+    HYPRE_BigInt *cmap = NULL;
 
-    I = massmatrix.GetI();
-    J = massmatrix.GetJ();
+    //ParBilinearForm dummy(fes);
+    hpr_mass = M.ParallelAssemble(&massmatrix_ld);
+    hpr_mass->GetDiag(M_diag);
+    hpr_mass->GetOffd(M_offdiag, cmap);
 
     I_ld = massmatrix_ld.GetI();
     J_ld = massmatrix_ld.GetJ();
+    
+    /*/
+    for(int i = 0; i < massmatrix_ld.Height(); i++)
+    {
+        for(int k = I_ld[i]; k < I_ld[i+1]; k++)
+        {
+            int j = J_ld[k];
+
+            MFEM_VERIFY(abs(massmatrix_ld(i,j) - M_diag(i,j)) < 1e-15, "werte nicht gleich i,j" )
+            MFEM_VERIFY(abs(M_diag.GetData()[k] -M_diag(i,j)) < 1e-15, "werte nicht gleich k,ij_ld" )
+            MFEM_VERIFY(abs(massmatrix_ld.GetData()[k] -massmatrix_ld(i,j)) < 1e-15, "werte nicht gleich k,ij_ld" )
+        } 
+
+        for(int k = I_ld[i]; k < I_ld[i+1]; k++)
+        {
+            int j = J_ld[k];
+
+            MFEM_VERIFY(abs(massmatrix_ld.GetData()[k] - M_diag.GetData()[k]) < 1e-15, "werte nicht gleich k" )
+            MFEM_VERIFY(abs(massmatrix_ld(i,j) - M_diag.GetData()[k]) < 1e-15, "werte nicht gleich ij k" )
+        } 
+    }
+    //MFEM_ABORT("passt");
+    cout << " passt " << endl;
+    //*/
 
     BuildNormals();
 }
@@ -56,6 +80,23 @@ void DofInfo::BuildNormals()
             normals(b, d) = nor(d);
         }
     }
+}
+
+double DofInfo::GetElem(const int i, const int j, const SparseMatrix& mat) const
+{
+    auto I = mat.GetI();
+    auto J = mat.GetJ();
+    auto A = mat.ReadData();
+
+    for(int k = I[i]; k < I[i+1]; k++)
+    {
+        if(J[k] == j)
+        {
+            return A[k];
+        }
+    }
+
+    return 0.0;
 }
 
 HYPRE_Int DofInfo::Extract_offdiagonals(hypre_ParCSRMatrix *A, hypre_ParVector *x, hypre_ParVector *y)

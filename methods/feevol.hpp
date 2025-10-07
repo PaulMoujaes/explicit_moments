@@ -57,6 +57,9 @@ class FE_Evolution : public TimeDependentOperator
         mutable Vector Source;
 
         SparseMatrix M_sigma_a, M_sigma_aps;
+        HypreParMatrix *M_a_HP, *M_aps_HP;
+        SparseMatrix M_sigma_a_diag, M_sigma_aps_diag;
+        SparseMatrix M_sigma_a_offdiag, M_sigma_aps_offdiag;
 
         //Vector lumpedM_oa, lumpedM_os;
         SparseMatrix Convection, Convection_T; //, M_oa, M_os;

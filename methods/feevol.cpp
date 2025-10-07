@@ -151,25 +151,44 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     Vector ones(nDofs);
     ones = 1.0;
 
+    HYPRE_BigInt *cmap1 = NULL;
+    HYPRE_BigInt *cmap2 = NULL;
+
     ParBilinearForm sigma_a(fes);
     sigma_a.AddDomainIntegrator(new MassIntegrator(*sys->Sigma_0));
     sigma_a.Assemble();
     sigma_a.Finalize(0);
     M_sigma_a = sigma_a.SpMat();
+    
     M_sigma_a.Mult(ones, Mlumped_sigma_a);
     SyncVector(Mlumped_sigma_a);
-    HypreParMatrix *Ms_a_HP = sigma_a.ParallelAssemble();
-    Ms_a_HP->MergeDiagAndOffd(M_sigma_a);
+
+    M_a_HP = sigma_a.ParallelAssemble(&M_sigma_a);
+    M_a_HP->GetDiag(M_sigma_a_diag);
+    M_a_HP->GetOffd(M_sigma_a_offdiag, cmap1);
 
     ParBilinearForm sigma_aps(fes);
     sigma_aps.AddDomainIntegrator(new MassIntegrator(*sys->Sigma_1));
     sigma_aps.Assemble();
     sigma_aps.Finalize(0);
     M_sigma_aps = sigma_aps.SpMat();
+
     M_sigma_aps.Mult(ones, Mlumped_sigma_aps);
     SyncVector(Mlumped_sigma_aps);
-    HypreParMatrix *Ms_aps_HP = sigma_aps.ParallelAssemble();
-    Ms_aps_HP->MergeDiagAndOffd(M_sigma_aps);
+
+    M_aps_HP = sigma_aps.ParallelAssemble(&M_sigma_aps);
+    M_aps_HP->GetDiag(M_sigma_aps_diag);
+    M_aps_HP->GetOffd(M_sigma_aps_offdiag, cmap2);
+
+    /*
+    cout << dofs.M_offdiag.Width() << ", " << offdiagsize << endl;
+    cout << M_sigma_aps_offdiag.Width() << ", " << offdiagsize << endl;
+    cout << M_sigma_a_offdiag.Width() << ", " << offdiagsize << endl;
+    cout << endl;
+    cout << M_sigma_aps_offdiag.Height() << ", " << TDnDofs << endl;
+    cout << M_sigma_a_offdiag.Height() << ", " << TDnDofs << endl;
+    cout << "----------" <<endl;
+    //*/
 
     //ParLinearForm Source_LF(vfes);
     Source_LF.AddDomainIntegrator(new VectorDomainLFIntegrator(*sys->q));
@@ -459,7 +478,6 @@ void FE_Evolution::GetOffDiagNodes(const BlockVector &x_td, BlockVector &x_od) c
         dofs.Extract_offd_hypre(hpr_con[0], x_td.GetBlock(n), x_od.GetBlock(n), offdiagsize);
     }
 }
-
 
 void FE_Evolution::UpdateGlobalVector(const Vector &x) const
 {
