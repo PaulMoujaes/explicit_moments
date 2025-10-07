@@ -474,6 +474,12 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
 
                     double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
                     double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
+
+                    MFEM_VERIFY(Qij >= 0.0, "Qij not positive! " + to_string(log(abs(Qij))));
+                    MFEM_VERIFY(Qji >= 0.0, "Qji not positive! " + to_string(log(abs(Qji))));
+                
+                    Qij = max(Qij, 0.0);
+                    Qji = max(Qji, 0.0);
                 
                     Qij *= 1.0 - 1e-13;
                     Qji *= 1.0 - 1e-13;
