@@ -62,11 +62,11 @@ double System::CalcBarState_returndij(const Vector &ui, const Vector &uj, const 
    EvaluateFlux(ui, flux1);
    EvaluateFlux(uj, flux2);
    flux1.Mult(cij, flux1_c);
-   flux2.Mult(cij, flux1_c);
+   flux2.Mult(cij, flux2_c);
 
    for(int n = 0; n < numVar; n++)
    {   
-      uij(n) = 0.5 * ((ui(n) + uj(n)) - (flux1_c(n) - flux1_c(n)) / dij ) ;
+      uij(n) = 0.5 * ((ui(n) + uj(n)) - (flux2_c(n) - flux1_c(n)) / dij ) ;
    }
    flux1.Mult(cji, flux1_c);
    flux2.Mult(cji, flux2_c);

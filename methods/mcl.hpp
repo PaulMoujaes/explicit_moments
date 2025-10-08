@@ -27,6 +27,7 @@ class MCL : public FE_Evolution
         virtual void CalcUdot(const BlockVector &x_td, const BlockVector &x_od, const Vector &dbc, const Vector &Source) const;
         virtual void Mult(const Vector &x, Vector &y) const;
         virtual void CalcMinMax(const BlockVector &x_td, const BlockVector &x_od) const;
+        virtual void IDPfix(const Vector &uij, const Vector &uji, const double dij, Vector &fij_vec) const;
 };
 
 #endif

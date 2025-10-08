@@ -65,7 +65,7 @@ MCL::MCL(ParFiniteElementSpace *fes_, ParFiniteElementSpace *vfes_, System *sys_
 
 void MCL::Mult(const Vector &x, Vector &y) const
 {
-    MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
+    //MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
     GetDiagOffDiagNodes(x, x_td, x_od);
     //rhs_td = 0.0;
     if(sys->timedependentSource)
@@ -178,6 +178,15 @@ void MCL::Mult(const Vector &x, Vector &y) const
 
 void MCL::CalcMinMax(const BlockVector &x_td, const BlockVector &x_od) const
 {   
+    MFEM_VERIFY(umin_td.Size() == numVar * TDnDofs, "wrong size min")
+    MFEM_VERIFY(umax_td.Size() == numVar * TDnDofs, "wrong size max")
+
+    for(int n = 0; n < numVar; n++)
+    {
+        MFEM_VERIFY(umin_td.GetBlock(n).Size() == TDnDofs, "wrong size min n")
+        MFEM_VERIFY(umax_td.GetBlock(n).Size() == TDnDofs, "wrong size max n")
+    }
+
     umin_td = x_td; 
     umax_td = x_td;
 
@@ -191,6 +200,8 @@ void MCL::CalcMinMax(const BlockVector &x_td, const BlockVector &x_od) const
         for(int n = 0; n < numVar; n++)
         {   
             ui(n) = x_td.GetBlock(n).Elem(i);
+            //umin_td.GetBlock(n).Elem(i) = ui(n);
+            //umax_td.GetBlock(n).Elem(i) = ui(n);
         }
 
         for(int k = I_diag[i]; k < I_diag[i+1]; k++)
@@ -212,14 +223,21 @@ void MCL::CalcMinMax(const BlockVector &x_td, const BlockVector &x_od) const
             double dij = sys->CalcBarState_returndij(ui, uj, cij, cji, uij, uji);
 
             for(int n = 0; n < numVar; n++)
-            {       
+            {      
                 umin_td.GetBlock(n).Elem(i) = min(umin_td.GetBlock(n).Elem(i), uj(n));
                 umax_td.GetBlock(n).Elem(i) = max(umax_td.GetBlock(n).Elem(i), uj(n));
                 
                 umin_td.GetBlock(n).Elem(i) = min(umin_td.GetBlock(n).Elem(i), uij(n));
-                umax_td.GetBlock(n).Elem(i) = max(umax_td.GetBlock(n).Elem(i), uij(n)); 
+                umax_td.GetBlock(n).Elem(i) = max(umax_td.GetBlock(n).Elem(i), uij(n));
             }
         }
+
+        /*
+        umin_td.GetBlock(0).Print();
+        cout <<"--------------------------------__" << endl;
+        umax_td.GetBlock(0).Print();
+        MFEM_ABORT("")
+        //*/
 
         if(offdiagsize > 0)
         {
@@ -284,6 +302,8 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
             //cout << J_diag[k] << ", " << M_sigma_a_diag.GetJ()[k] << endl;
             if(i == j){continue;}
 
+            fij_vec = 0.0;
+
             for(int n = 0; n < numVar; n++)
             {   
                 uj(n) = x_td.GetBlock(n).Elem(j);
@@ -297,28 +317,32 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
 
             double dij = sys->CalcBarState_returndij(ui, uj, cij, cji, uij, uji);
 
+            MFEM_VERIFY(dofs.M_diag.GetJ()[k] == j, "nicht gut");
             for(int n = 0; n < numVar; n++)
             {
-                double mij_sigma = 0.0; // (n == 0) * dofs.GetElem(i, j, M_sigma_a_diag) + (n > 0) * dofs.GetElem(i, j, M_sigma_aps_diag); // TODO
-                double mij = dofs.M_diag(i,j); // TODO
-                //MFEM_VERIFY(abs(dofs.M_diag(i,j) - dofs.M_diag.GetData()[k]) < 1e-15, to_string(dofs.M_diag(i,j)) + " irgendwat passte net "+ to_string(dofs.M_diag.GetData()[k]));
+                double mij_sigma = (n == 0) * M_sigma_a_diag.GetData()[k] + (n > 0) * M_sigma_aps_diag.GetData()[k];
+                double mij = dofs.M_diag.GetData()[k];
+
+                //mij_sigma = 0.0;
+                //mij = 0.0;
+
                 const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_td.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                 double fij_star;
             
                 if( fij_> 0)
                 {
-                    double fij_min = 2.0 * dij * (umax_td.GetBlock(n).Elem(i) - uij(n));
-                    double fij_max = 2.0 * dij * (uji(n) - umin_td.GetBlock(n).Elem(j));
-                    double fij_bound = min(fij_max, fij_min);
+                    double fij_min = umax_td.GetBlock(n).Elem(i) - uij(n);
+                    double fij_max = uji(n) - umin_td.GetBlock(n).Elem(j);
+                    double fij_bound = 2.0 * dij *  min(fij_max, fij_min);
                 
                     fij_star = min(fij_, fij_bound);
                     fij_star = max(0.0, fij_star);
                 }
                 else
                 {
-                    double fij_min = 2.0 * dij * (umin_td.GetBlock(n).Elem(i) - uij(n));
-                    double fij_max = 2.0 * dij* (uji(n) - umax_td.GetBlock(n).Elem(j));
-                    double fij_bound = max(fij_max, fij_min);
+                    double fij_min = umin_td.GetBlock(n).Elem(i) - uij(n);
+                    double fij_max = uji(n) - umax_td.GetBlock(n).Elem(j);
+                    double fij_bound = 2.0 * dij * max(fij_max, fij_min);
 
                     fij_star = max(fij_, fij_bound); 
                     fij_star= min(0.0 , fij_star);
@@ -330,68 +354,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
             }
             
             #if PositivityFix == 1
-
-                double psi1_ij_sq = 0.0;
-                double psi1_ji_sq = 0.0;
-
-                double f1_ij_sq = 0.0;
-
-                double f1p1_ij = 0.0;
-                double f1p1_ji = 0.0;
-
-                for(int d = 0; d < dim; d++)
-                {
-                    f1_ij_sq += fij_vec(d+1) * fij_vec(d+1);
-
-                    psi1_ij_sq += uij(d+1) * uij(d+1);
-                    psi1_ji_sq += uji(d+1) * uji(d+1);
-                    
-                    f1p1_ij += uij(d+1) * fij_vec(d+1);
-                    f1p1_ji += - fij_vec(d+1) * uji(d+1);
-                }
-
-                double f1_ji_sq = f1_ij_sq; // fij = - fji => fij^2 = fji^2
-                double f0_ij = fij_vec(0);
-                double f0_ji = - f0_ij;
-
-                double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
-                double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
-
-                MFEM_VERIFY(Qij > 0.0, "Qij not positive diag! " + to_string(log(abs(Qij))));
-                MFEM_VERIFY(Qji > 0.0, "Qji not positive diag! " + to_string(log(abs(Qji))));
-                
-                Qij = max(Qij, 0.0);
-                Qji = max(Qji, 0.0);
-                
-                Qij *= 1.0 - 1e-13;
-                Qji *= 1.0 - 1e-13;
-
-                double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
-                double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
-
-                double aij = Qij / Rij;
-                double aji = Qji / Rji;
-                
-                double alpha = 1.0;
-                if(Rij > Qij && Rji > Qji)
-                {
-                    alpha = min(aij, aji);
-                }
-                else if( Rij > Qij && Rji <= Qji)
-                {
-                    alpha = aij;
-                }
-                else if( Rij <= Qij && Rji > Qji)
-                {
-                    alpha = aji;
-                }
-
-                MFEM_VERIFY(alpha >= -1e-15 && alpha <= 1.0 +1e-15, "alpha_pa not in [0,1]!");
-                
-                alpha = max(0.0, alpha);
-                alpha = min(1.0, alpha);
-                
-                fij_vec *= alpha;
+                IDPfix(uij, uji, dij, fij_vec);
             #endif
 
             for(int n = 0; n < numVar; n++)
@@ -423,29 +386,32 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
 
                 for(int n = 0; n < numVar; n++)
                 {
-                    double mij_sigma = 0.0; // (n == 0) * dofs.GetElem(i, j, M_sigma_a_offdiag) + (n > 0) * dofs.GetElem(i, j, M_sigma_aps_offdiag); // TODO
-                    double mij = dofs.M_offdiag(i,j); // TODO
-                //MFEM_VERIFY(abs(dofs.M_diag(i,j) - dofs.M_diag.GetData()[k]) < 1e-15, to_string(dofs.M_diag(i,j)) + " irgendwat passte net "+ to_string(dofs.M_diag.GetData()[k]));
+                    double mij_sigma = (n == 0) * M_sigma_a_offdiag.GetData()[k] + (n > 0) * M_sigma_aps_offdiag.GetData()[k];
+                    double mij = dofs.M_offdiag.GetData()[k];
+                    
+                    //mij_sigma = 0.0;
+                    //mij = 0.0;
+
                     const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_od.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                     double fij_star;
             
                     if( fij_> 0)
                     {
-                        double fij_min = 2.0 * dij * (umax_td.GetBlock(n).Elem(i) - uij(n));
-                        double fij_max = 2.0 * dij * (uji(n) - umin_od.GetBlock(n).Elem(j));
-                        double fij_bound = min(fij_max, fij_min);
+                        double fij_min = umax_td.GetBlock(n).Elem(i) - uij(n);
+                        double fij_max = uji(n) - umin_od.GetBlock(n).Elem(j);
+                        double fij_bound = 2.0 * dij * min(fij_max, fij_min);
                 
                         fij_star = min(fij_, fij_bound);
                         fij_star = max(0.0, fij_star);
                     }
                     else
                     {
-                        double fij_min = 2.0 * dij * (umin_td.GetBlock(n).Elem(i) - uij(n));
-                        double fij_max = 2.0 * dij* (uji(n) - umax_od.GetBlock(n).Elem(j));
-                        double fij_bound = max(fij_max, fij_min);
+                        double fij_min = umin_td.GetBlock(n).Elem(i) - uij(n);
+                        double fij_max = uji(n) - umax_od.GetBlock(n).Elem(j);
+                        double fij_bound = 2.0 * dij * max(fij_max, fij_min);
 
                         fij_star = max(fij_, fij_bound); 
-                        fij_star= min(0.0 , fij_star);
+                        fij_star = min(0.0 , fij_star);
                     }
 
                     MFEM_ASSERT(abs(fij_star) <= abs(fij_) + 1e-15, "a_ij density wrong!");
@@ -454,68 +420,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
                 }
             
                 #if PositivityFix == 1
-
-                    double psi1_ij_sq = 0.0;
-                    double psi1_ji_sq = 0.0;
-
-                    double f1_ij_sq = 0.0;
-
-                    double f1p1_ij = 0.0;
-                    double f1p1_ji = 0.0;
-
-                    for(int d = 0; d < dim; d++)
-                    {
-                        f1_ij_sq += fij_vec(d+1) * fij_vec(d+1);
-
-                        psi1_ij_sq += uij(d+1) * uij(d+1);
-                        psi1_ji_sq += uji(d+1) * uji(d+1);
-                    
-                        f1p1_ij += uij(d+1) * fij_vec(d+1);
-                        f1p1_ji += - fij_vec(d+1) * uji(d+1);
-                    }
-
-                    double f1_ji_sq = f1_ij_sq; // fij = - fji => fij^2 = fji^2
-                    double f0_ij = fij_vec(0);
-                    double f0_ji = - f0_ij;
-
-                    double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
-                    double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
-
-                    MFEM_VERIFY(Qij > 0.0, "Qij not positive offdiag! " + to_string(log(abs(Qij))));
-                    MFEM_VERIFY(Qji > 0.0, "Qji not positive offdiag! " + to_string(log(abs(Qji))));
-                
-                    Qij = max(Qij, 0.0);
-                    Qji = max(Qji, 0.0);
-                
-                    Qij *= 1.0 - 1e-13;
-                    Qji *= 1.0 - 1e-13;
-
-                    double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
-                    double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
-
-                    double aij = Qij / Rij;
-                    double aji = Qji / Rji;
-                
-                    double alpha = 1.0;
-                    if(Rij > Qij && Rji > Qji)
-                    {
-                        alpha = min(aij, aji);
-                    }
-                    else if( Rij > Qij && Rji <= Qji)
-                    {
-                        alpha = aij;
-                    }
-                    else if( Rij <= Qij && Rji > Qji)
-                    {
-                        alpha = aji;
-                    }
-
-                    MFEM_VERIFY(alpha >= -1e-15 && alpha <= 1.0 +1e-15, "alpha_pa not in [0,1]!");
-                
-                    alpha = max(0.0, alpha);
-                    alpha = min(1.0, alpha);
-                
-                    fij_vec *= alpha;
+                    IDPfix(uij, uji, dij, fij_vec);
                 #endif
 
                 for(int n = 0; n < numVar; n++)
@@ -525,6 +430,85 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
             }
         }
     }
+}
+
+void MCL::IDPfix(const Vector &uij, const Vector &uji, const double dij, Vector &fij_vec) const 
+{
+    double psi1_ij_sq = 0.0;
+    double psi1_ji_sq = 0.0;
+
+    double f1_ij_sq = 0.0;
+
+    double f1p1_ij = 0.0;
+    double f1p1_ji = 0.0;
+
+    for(int d = 0; d < dim; d++)
+    {
+        f1_ij_sq += fij_vec(d+1) * fij_vec(d+1);
+
+        psi1_ij_sq += uij(d+1) * uij(d+1);
+        psi1_ji_sq += uji(d+1) * uji(d+1);
+                    
+        f1p1_ij += uij(d+1) * fij_vec(d+1);
+        f1p1_ji += - fij_vec(d+1) * uji(d+1);
+    }
+
+    double f1_ji_sq = f1_ij_sq; // fij = - fji => fij^2 = fji^2
+    double f0_ij = fij_vec(0);
+    double f0_ji = - f0_ij;
+
+    double Qij = 4.0 * dij * dij * (uij(0) * uij(0) - psi1_ij_sq);
+    double Qji = 4.0 * dij * dij * (uji(0) * uji(0) - psi1_ji_sq);
+
+    MFEM_VERIFY(Qij > 0.0, "Qij not positive! " + to_string(log(abs(Qij))));
+    MFEM_VERIFY(Qji > 0.0, "Qji not positive! " + to_string(log(abs(Qji))));
+                
+    //Qij = max(Qij, 0.0);
+    //Qji = max(Qji, 0.0);
+                
+    Qij *= 1.0 - 1e-13;
+    Qji *= 1.0 - 1e-13;
+
+    double Rij = max(0.0 , f1_ij_sq - f0_ij * f0_ij) + 4.0 * dij * ( f1p1_ij - f0_ij * uij(0));
+    double Rji = max(0.0 , f1_ji_sq - f0_ji * f0_ji) + 4.0 * dij * ( f1p1_ji - f0_ji * uji(0));
+
+    double aij = Qij / Rij;
+    double aji = Qji / Rji;
+                
+    double alpha = 1.0;
+    if(Rij > Qij && Rji > Qji)
+    {
+        alpha = min(aij, aji);
+    }
+    else if( Rij > Qij && Rji <= Qji)
+    {
+        alpha = aij;
+    }
+    else if( Rij <= Qij && Rji > Qji)
+    {
+        alpha = aji;
+    }
+
+    MFEM_VERIFY(alpha >= -1e-15 && alpha <= 1.0 +1e-15, "alpha_pa not in [0,1]!");
+                
+    alpha = max(0.0, alpha);
+    alpha = min(1.0, alpha);
+                
+    fij_vec *= alpha;
+
+    MFEM_VERIFY(sys->Admissible(uij), "fucked uij");
+    MFEM_VERIFY(sys->Admissible(uji), "fucked uji");
+
+    Vector uij_ = uij;
+    Vector uji_ = uji;
+    Vector fij_ = fij_vec;
+    fij_ *= 0.5;
+    fij_ /= dij;
+    uij_ += fij_;
+    uji_ -= fij_;
+    MFEM_VERIFY(sys->Admissible(uij_), "IDP fix fucked uij");
+    MFEM_VERIFY(sys->Admissible(uji_), "IDP fix fucked uji");
+    //cout << "passt" << endl;
 }
 
 

@@ -76,7 +76,9 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     for(int d = 0; d < dim; d++)
     {
         C_diag[d] = new SparseMatrix(nDofs, nDofs);
+        *C_diag[d] = dofs.massmatrix_ld;
         C_diag_T[d] = new SparseMatrix(nDofs, nDofs);
+        *C_diag_T[d] = dofs.massmatrix_ld;
     }
 
     auto I_ld = dofs.I_ld;
@@ -89,8 +91,8 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
             int j = J_ld[k];
             for(int d = 0; d < dim; d++)
             {
-                C_diag[d]->Set(i,j, Convection(i,j + d * nDofs));
-                C_diag_T[d]->Set(i,j, Convection_T(i + d * nDofs, j));
+                C_diag[d]->Elem(i,j) = Convection(i,j + d * nDofs);
+                C_diag_T[d]->Elem(i,j) = Convection_T(i + d * nDofs, j);
             }
         }
     }
@@ -98,9 +100,6 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
     ParBilinearForm dummy(fes);
     for(int d = 0; d < dim; d++)
     {
-        C_diag[d]->Finalize(0);
-        C_diag_T[d]->Finalize(0);
-
         HYPRE_BigInt *cmap1 = NULL;
         HYPRE_BigInt *cmap2 = NULL;
         hpr_con[d] = dummy.ParallelAssemble(C_diag[d]);
@@ -156,7 +155,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 
     ParBilinearForm sigma_a(fes);
     sigma_a.AddDomainIntegrator(new MassIntegrator(*sys->Sigma_0));
-    sigma_a.Assemble();
+    sigma_a.Assemble(0);
     sigma_a.Finalize(0);
     M_sigma_a = sigma_a.SpMat();
     
@@ -169,7 +168,7 @@ FE_Evolution::FE_Evolution(ParFiniteElementSpace *fes_, ParFiniteElementSpace *v
 
     ParBilinearForm sigma_aps(fes);
     sigma_aps.AddDomainIntegrator(new MassIntegrator(*sys->Sigma_1));
-    sigma_aps.Assemble();
+    sigma_aps.Assemble(0);
     sigma_aps.Finalize(0);
     M_sigma_aps = sigma_aps.SpMat();
 
