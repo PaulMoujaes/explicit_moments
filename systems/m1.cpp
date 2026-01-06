@@ -165,7 +165,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
 
         case 11:
         {
-            alpha = 0.9;
+            alpha = 1.0 - 1e-14;
             problemName = "M1-ManifacturedSol";
             solutionKnown = true;
             steadyState = false;
@@ -552,7 +552,7 @@ void AnalyticalSolutionM1(const Vector &x, double t, Vector &u)
         }
         case 11: 
         {
-            u(0) = sin(0.5 * M_PI * x(0)) + (1.0 - alpha);
+            u(0) = sin(0.5 * M_PI * x(0)) + 1.1;
             u(1) = alpha * u(0);
             u *= exp(-t);
             break;
@@ -1122,10 +1122,9 @@ void source(const Vector &x, double t, Vector &q)
         case 11: 
         {
             double x_a = (5.0 - 2.0 * sqrt(max(4.0 - 3.0 * alpha * alpha, 0.0))) / 3.0;
-            //MFEM_VERIFY(x_a <= alpha, "alpha not realizable for source!");
             q(0) = cos(0.5 * M_PI * x(0));
             q(1) = x_a * cos(0.5 * M_PI * x(0));
-            q *= exp(-t) * 0.5 * M_PI * alpha ;
+            q *= 0.5 * M_PI * alpha * exp(-t);
             MFEM_VERIFY(q(0) >= 0.0,"q0 not positive");
             MFEM_VERIFY(abs(q(1)) <= q(0) , "q not idp");
             break;

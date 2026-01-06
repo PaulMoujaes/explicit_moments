@@ -406,7 +406,7 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
                     }
 
                     MFEM_ASSERT(abs(fij_star) <= abs(fij_) + 1e-15, "a_ij density wrong!");
-            
+                    
                     fij_vec(n) = fij_star;
                 }
             
