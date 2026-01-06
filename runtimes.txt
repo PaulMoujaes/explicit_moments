@@ -487,3 +487,52 @@
 39685.7 seconds needed for the run: ex_moments -sys 0 -b 14 -m meshes/inline-4quad_1.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn MoSt_10S -i -ps 500 
 22.4675 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn 2beams1dL1 -io Beams -ps 1000 
 25.1393 seconds needed for the run: ex_moments -sys 0 -b 9 -m meshes/left-inlet-right-inlet.mesh -o 1 -vis 100 -r 8 -fe 2 -ode 2 -ft 1.5 -cfl 0.9 -vn 2beams1dL1 -io Beams -ps 1000 
+8.71883 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 2 -ft 10.0 -vn EOCtest 
+0.888321 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+1.46377 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+0.454671 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+0.371137 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.433644 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+0.413873 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+1.48712 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+2.29305 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+0.728116 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 1 -ode 2 -ft 1.0 -vn EOCtest 
+0.751335 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 1 -ode 1 -ft 1.0 -vn EOCtest 
+2.71943 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 1 -ft 1.0 -vn EOCtest 
+1.98349 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.63658 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.235394 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 5 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.0603927 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 5 -fe 0 -ode 1 -ft 1.0 -vn EOCtest 
+0.216557 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 5 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.925968 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 5 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+2.61701 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+1.47455 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 6 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+4.52696 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 7 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+1.07259 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 7 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+3.94093 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 8 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+14.4867 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 9 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+14.5651 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 9 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+3.89825 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 8 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+3.81231 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 8 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+1.10495 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 7 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+3.87872 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 8 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+14.4724 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 9 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+14.5668 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 9 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+3.79772 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 8 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+1.07745 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 7 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+15.7568 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 9 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+3.90555 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 8 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+1.17366 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 7 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.404108 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 6 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.123426 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 5 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.0674049 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 4 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.0304551 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 3 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.0166082 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 2 -fe 2 -ode 2 -ft 1.0 -vn EOCtest 
+0.0457515 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 2 -fe 1 -ode 1 -ft 1.0 -vn EOCtest 
+0.00366046 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -r 2 -fe 0 -ode 1 -ft 1.0 -vn EOCtest 
+0.00616589 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -fe 0 -ode 1 -ft 1.0 -r 3 
+0.0111758 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -fe 0 -ode 1 -ft 1.0 -r 4 
+0.0773664 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -fe 0 -ode 1 -ft 1.0 -r 5 
+0.0928035 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -fe 0 -ode 1 -ft 1.0 -r 6 
+0.284745 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -fe 0 -ode 1 -ft 1.0 -r 7 
+0.691015 seconds needed for the run: ex_moments -b 15 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.9 -fe 0 -ode 1 -ft 1.0 -r 8 

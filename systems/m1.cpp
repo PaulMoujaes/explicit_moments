@@ -165,7 +165,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
 
         case 11:
         {
-            alpha = 0.9;
+            alpha = 1.0 - 1e-14;
             problemName = "M1-ManifacturedSol";
             solutionKnown = true;
             steadyState = false;
@@ -210,6 +210,19 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Directed Lattice Problem only implemented in 2D!");
+            break;
+        }
+        case 15:
+        {
+            alpha = 1.0 - 1e-8;
+            problemName = "M1-steady-ManifacturedSol";
+            solutionKnown = true;
+            steadyState = true;
+            timedependentSource = false;
+            timedependentbdr = false;
+            bdrcon_needed = true;
+            u0.ProjectCoefficient(ic);
+            MFEM_VERIFY(dim == 1, "M1 ManifacturedSol2 only implemented in 1D!");
             break;
         }
         default:
@@ -552,9 +565,16 @@ void AnalyticalSolutionM1(const Vector &x, double t, Vector &u)
         }
         case 11: 
         {
-            u(0) = sin(0.5 * M_PI * x(0)) + (1.0 - alpha);
+            u(0) = sin(0.5 * M_PI * x(0)) + 1.1;
             u(1) = alpha * u(0);
             u *= exp(-t);
+            break;
+
+        }
+        case 15: 
+        {
+            u(0) = sin(0.5 * M_PI * x(0)) + 1.1;
+            u(1) = alpha * u(0);
             break;
 
         }
@@ -571,6 +591,7 @@ void InitialConditionM1(const Vector &x, Vector &u)
     {
         case 10:
         case 11:
+        case 15:
         {
             AnalyticalSolutionM1(x, 0.0, u);
             break;
@@ -669,6 +690,7 @@ void InflowFunctionM1(const Vector &x, double t, Vector &u)
             break;      
         }
         case 11:
+        case 15:
         {
             AnalyticalSolutionM1(x, t, u);
             break;
@@ -798,6 +820,7 @@ double sigma_a(const Vector &x)
         case 7:
         case 10:
         case 12:
+        case 15:
         {
             return 0.0;
         }
@@ -966,6 +989,7 @@ double sigma_aps(const Vector &x)
         case 10:
         case 11:
         case 12:
+        case 15:
         {
             sigma_s = 0.0; break;
         }
@@ -1139,6 +1163,17 @@ void source(const Vector &x, double t, Vector &q)
             q(2) = 0.9  * q(0);
             break;
 
+        }
+        case 15: 
+        {
+            double x_a = (5.0 - 2.0 * sqrt(max(4.0 - 3.0 * alpha * alpha, 0.0))) / 3.0;
+            //MFEM_VERIFY(x_a <= alpha, "alpha not realizable for source!");
+            q(0) = cos(0.5 * M_PI * x(0));
+            q(1) = x_a * cos(0.5 * M_PI * x(0));
+            q *= 0.5 * M_PI * alpha ;
+            MFEM_VERIFY(q(0) >= 0.0,"q0 not positive");
+            MFEM_VERIFY(abs(q(1)) <= q(0) , "q not idp");
+            break;
         }
 
 
