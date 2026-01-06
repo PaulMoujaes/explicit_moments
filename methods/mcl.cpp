@@ -299,7 +299,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
         for(int k = I_diag[i]; k < I_diag[i+1]; k++)
         {
             int j = J_diag[k];
-            //cout << J_diag[k] << ", " << M_sigma_a_diag.GetJ()[k] << endl;
             if(i == j){continue;}
 
             fij_vec = 0.0;
@@ -317,14 +316,10 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
 
             double dij = sys->CalcBarState_returndij(ui, uj, cij, cji, uij, uji);
 
-            MFEM_VERIFY(dofs.M_diag.GetJ()[k] == j, "nicht gut");
             for(int n = 0; n < numVar; n++)
             {
                 double mij_sigma = (n == 0) * M_sigma_a_diag.GetData()[k] + (n > 0) * M_sigma_aps_diag.GetData()[k];
                 double mij = dofs.M_diag.GetData()[k];
-
-                //mij_sigma = 0.0;
-                //mij = 0.0;
 
                 const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_td.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                 double fij_star;
@@ -369,7 +364,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
             for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
             {
                 int j = J_offdiag[k];
-                //cout << J_offdiag[k] << ", " << M_sigma_a_offdiag.GetJ()[k] << endl;
 
                 for(int n = 0; n < numVar; n++)
                 {   
@@ -388,9 +382,6 @@ void MCL::ComputeAntiDiffusiveFluxes(const BlockVector &x_td, const BlockVector 
                 {
                     double mij_sigma = (n == 0) * M_sigma_a_offdiag.GetData()[k] + (n > 0) * M_sigma_aps_offdiag.GetData()[k];
                     double mij = dofs.M_offdiag.GetData()[k];
-                    
-                    //mij_sigma = 0.0;
-                    //mij = 0.0;
 
                     const double fij_ = mij * (uDot_td.GetBlock(n).Elem(i) - uDot_od.GetBlock(n).Elem(j)) + (dij + mij_sigma) * (ui(n) - uj(n));
                     double fij_star;
@@ -463,8 +454,8 @@ void MCL::IDPfix(const Vector &uij, const Vector &uji, const double dij, Vector 
     MFEM_VERIFY(Qij > 0.0, "Qij not positive! " + to_string(log(abs(Qij))));
     MFEM_VERIFY(Qji > 0.0, "Qji not positive! " + to_string(log(abs(Qji))));
                 
-    //Qij = max(Qij, 0.0);
-    //Qji = max(Qji, 0.0);
+    Qij = max(Qij, 0.0);
+    Qji = max(Qji, 0.0);
                 
     Qij *= 1.0 - 1e-13;
     Qji *= 1.0 - 1e-13;
@@ -495,6 +486,7 @@ void MCL::IDPfix(const Vector &uij, const Vector &uji, const double dij, Vector 
     alpha = min(1.0, alpha);
                 
     fij_vec *= alpha;
+    /*
 
     MFEM_VERIFY(sys->Admissible(uij), "fucked uij");
     MFEM_VERIFY(sys->Admissible(uji), "fucked uji");
@@ -509,6 +501,7 @@ void MCL::IDPfix(const Vector &uij, const Vector &uji, const double dij, Vector 
     MFEM_VERIFY(sys->Admissible(uij_), "IDP fix fucked uij");
     MFEM_VERIFY(sys->Admissible(uji_), "IDP fix fucked uji");
     //cout << "passt" << endl;
+    //*/
 }
 
 

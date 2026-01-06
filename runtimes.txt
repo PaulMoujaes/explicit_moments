@@ -637,3 +637,8 @@
 0.402529 seconds needed for the run: ex_moments -sys 0 -b 4 -m meshes/left-inlet-right-outlet.mesh -o 1 -vis 1 -r 7 -fe 1 -ode 2 -ft 0.3 -cfl 0.5 -vn aTESTTESTabc 
 33.8419 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 5 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn aTESTTESTabc 
 35.2946 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 5 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn new -ps 100 
+434.353 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn new -ps 100 
+225.647 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 1 -r 7 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn new -ps 100 
+8178.29 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 9 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn new -ps 5000 
+371.792 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 7 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn new -ps 100 
+368.111 seconds needed for the run: ex_moments -sys 0 -b 3 -m meshes/inline-4quad_7.mesh -o 1 -vis 100 -r 7 -fe 1 -ode 2 -ft 3.2 -cfl 0.5 -vn new 
