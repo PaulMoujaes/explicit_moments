@@ -486,6 +486,7 @@ void MCL::IDPfix(const Vector &uij, const Vector &uji, const double dij, Vector 
     alpha = min(1.0, alpha);
                 
     fij_vec *= alpha;
+    //fij_vec *= 0.9; // pfusch
     /*
 
     MFEM_VERIFY(sys->Admissible(uij), "fucked uij");
@@ -598,42 +599,49 @@ void MCL::CalcUdot(const BlockVector &x_td, const BlockVector &x_od, const Vecto
 
 void MCL::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) const
 {   
-    res = 0.0;
-    /*
-    UpdateGlobalVector(x);
-    aux1 = 0.0;
+    //res = 0.0;
+    //*
+   //MFEM_VERIFY(sys->GloballyAdmissible(x), "not IDP!");
+    GetDiagOffDiagNodes(x, x_td, x_od);
+    //rhs_td = 0.0;
+
+
+    //bdr condition with ldofs because bdr edges are not shared
     Expbc(x, aux1);
-    ComputeAntiDiffusiveFluxes(x, aux1, adf);
 
-    aux1 += adf;
+    ComputeAntiDiffusiveFluxes(x_td, x_od, aux1, Source, adf_td);
+    rhs_td = adf_td;
+    //rhs_td = 0.0;
 
-    auto I = dofs.I;
-    auto J = dofs.J;
-    for(int i = 0; i < nDofs; i++)
+    // still ldofs, synced later
+    aux1 += Source;
+
+    auto I_diag = C_diag[0]->GetI();
+    auto J_diag = C_diag[0]->GetJ();
+    auto I_offdiag = C_offdiag[0]->GetI();
+    auto J_offdiag = C_offdiag[0]->GetJ();
+
+    for(int i = 0; i < TDnDofs; i++)
     {
-        int i_td = fes->GetLocalTDofNumber(i);
-        if(i_td == -1) {continue;}
-        int i_gl = fes->GetGlobalTDofNumber(i);
-
         for(int n = 0; n < numVar; n++)
         {   
-            ui(n) = x(i + n * nDofs);
+            ui(n) = x_td.GetBlock(n).Elem(i);
         }
 
-        for(int k = I[i_td]; k < I[i_td+1]; k++)
+        for(int k = I_diag[i]; k < I_diag[i+1]; k++)
         {
-            int j_gl = J[k];
-            if(j_gl == i_gl){continue;}
+            int j = J_diag[k];
+            if(i == j){continue;}
 
             for(int n = 0; n < numVar; n++)
             {   
-                uj(n) = x_gl[n]->Elem(j_gl);
+                uj(n) = x_td.GetBlock(n).Elem(j);
             }
 
             for(int d = 0; d < dim; d++)
             {   
-                cij(d) = C[d]->Elem(i_td,j_gl);
-                cji(d) = CT[d]->Elem(i_td,j_gl);
+                cij(d) = C_diag[d]->GetData()[k];
+                cji(d) = C_diag_T[d]->GetData()[k];
             }
 
             double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
@@ -646,18 +654,51 @@ void MCL::ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res) c
 
             for(int n = 0; n < numVar; n++)
             {
-                aux1(i + n * nDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+                rhs_td(i + n * TDnDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
             }
         }
-        // add source term 
+
+        if(offdiagsize > 0)
+        {
+            for(int k = I_offdiag[i]; k < I_offdiag[i+1]; k++)
+            {
+                int j = J_offdiag[k];
+
+                for(int n = 0; n < numVar; n++)
+                {   
+                    uj(n) = x_od.GetBlock(n).Elem(j);
+                }
+
+                for(int d = 0; d < dim; d++)
+                {   
+                    cij(d) = C_offdiag[d]->GetData()[k];
+                    cji(d) = C_offdiag_T[d]->GetData()[k];
+                }
+
+                double dij = sys->ComputeDiffusion(cij, cji, ui, uj);
+
+                sys->EvaluateFlux(ui, fluxEval_i);
+                sys->EvaluateFlux(uj, fluxEval_j);
+
+                fluxEval_j -= fluxEval_i;
+                fluxEval_j.Mult(cij, flux_j);
+
+                for(int n = 0; n < numVar; n++)
+                {
+                    rhs_td(i + n * TDnDofs) += (dij * (uj(n) - ui(n)) - ( flux_j(n)));
+                }
+            }
+        }
+
         for(int n = 0; n < numVar; n++)
         {
-            aux1(i + n * nDofs) += Source(i + n * nDofs) - (n == 0) * Mlumped_sigma_a(i) * ui(n) - (n > 0) * Mlumped_sigma_aps(i) * ui(n);
+            rhs_td(i + n * TDnDofs) -= (n == 0) * Mlumped_sigma_a_td(i) * ui(n) + (n > 0) * Mlumped_sigma_aps_td(i) * ui(n);
+            //rhs_td(i + n * TDnDofs) /= lumpedMassMatrix_td(i);
         }
     }
-
-    updated = false;
+    
     VSyncVector(aux1);
+    vfes->GetProlongationMatrix()->AddMult(rhs_td, aux1);
     ML_inv.Mult(aux1, res);
     //*/
 }

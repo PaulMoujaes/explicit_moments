@@ -35,7 +35,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
             solutionKnown = false;
             steadyState = false;
             timedependentSource = false;
-            timedependentbdr = false;
+            timedependentbdr = false; // only for analytical solution update
             bdrcon_needed = false;
             u0.ProjectCoefficient(ic);
             MFEM_VERIFY(dim == 2, "M1 Line Source only implemented in 2D!");
@@ -69,7 +69,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Lattice-Problem";
             solutionKnown = false;
-            steadyState = false;
+            steadyState = true;
             timedependentSource = false;
             timedependentbdr = false;
             bdrcon_needed = false;
@@ -192,7 +192,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Directed-Lattice-Problem";
             solutionKnown = false;
-            steadyState = true;
+            steadyState = false;
             timedependentSource = false;
             timedependentbdr = false;
             bdrcon_needed = false;
@@ -545,6 +545,27 @@ void AnalyticalSolutionM1(const Vector &x, double t, Vector &u)
    const int dim = x.Size();
     switch (configM1.benchmark)
     {
+        case 0:
+        {
+            u = 0.0;
+            Vector X = x;
+            X -= 0.5;
+            double r = X.Norml2();
+            //double denom = max(1e-15, 2.0 * M_PI * t * sqrt(t * t - r* r));
+            if((t - r) > 0)
+            {
+                u(0) = 1.0 / max(1e-20, 2.0 * M_PI * t * sqrt(t * t - r* r));
+
+                double omega_sq = 0.02;
+                omega_sq *= omega_sq;
+                u(0) /= 10.0 / (omega_sq * M_PI);
+            }
+            else
+            {
+                u(0) = 1e-4;
+            }
+            break;
+        }
         case 10:
         {
             u = 0.5 + 0.49 * sin(2.0 * M_PI * x(0));
@@ -655,7 +676,6 @@ void InflowFunctionM1(const Vector &x, double t, Vector &u)
     //double f = 0.9;
     switch (configM1.benchmark)
     {
-        case 0:
         case 1:
         case 2:
         case 3:
@@ -668,6 +688,7 @@ void InflowFunctionM1(const Vector &x, double t, Vector &u)
             InitialConditionM1(x,u);
             break;      
         }
+        case 0:
         case 11:
         {
             AnalyticalSolutionM1(x, t, u);

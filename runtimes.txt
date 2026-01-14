@@ -702,3 +702,22 @@
 0.61248 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 5 -fe 1 -ode 2 -ft 10.0 -vn EOCtest 
 2.36944 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 6 -fe 1 -ode 2 -ft 10.0 -vn EOCtest 
 8.74817 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -r 7 -fe 1 -ode 2 -ft 10.0 -vn EOCtest 
+26.4066 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 5 -vn AnaSol -ps 100 
+26.3544 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 5 -vn AnaSol -ps 100 
+26.4116 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 5 -vn AnaSol -ps 100 
+26.1077 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 5 -vn AnaSol -ps 100 
+205.561 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 6 -vn AnaSol -ps 100 
+26.6211 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 5 -vn AnaSol -ps 100 
+205.926 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 50 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 6 -vn AnaSol -ps 100 
+31894.3 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 0.45 -r 10 -vn RefSol -ps 1000 
+1831.54 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 7 -vn Revision -ps 1000 -i 
+0.896859 seconds needed for the run: ex_moments -b 13 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 7 -vn Revision 
+477.36 seconds needed for the run: ex_moments -b 0 -m ./meshes/periodic-4quad.mesh -vis 50 -cfl 0.5 -fe 0 -ode 2 -ft 0.45 -r 7 -vn LowOrder -ps 5000 -i 
+50690.7 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 10 -vn Revision -ps 100000 -i 
+51557.2 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 10 -vn Revision -ps 100000 -i 
+31727.1 seconds needed for the run: ex_moments -b 1 -m ./meshes/inline-4quad_20.mesh -vis 100 -cfl 0.5 -fe 1 -ode 2 -ft 6.0 -r 10 -vn RefSol -ps 100000 -i 
+58577.3 seconds needed for the run: ex_moments -b 13 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 10 -vn RefSol -ps 100000 -i 
+136.886 seconds needed for the run: ex_moments -b 2 -m ./meshes/inline-4quad_10.mesh -vis 100 -cfl 0.5 -fe 1 -ode 2 -ft 3.0 -r 7 -vn Revision -ps 100000 -i 
+22323.3 seconds needed for the run: ex_moments -b 2 -m ./meshes/inline-4quad_10.mesh -vis 100 -cfl 0.5 -fe 1 -ode 2 -ft 3.0 -r 10 -vn RefSol -ps 100000 -i 
+21577.7 seconds needed for the run: ex_moments -b 1 -m ./meshes/inline-4quad_20.mesh -vis 100 -cfl 0.5 -fe 1 -ode 2 -ft 6.0 -r 10 -vn RefSol09 -ps 100000 -i 
+0.082277 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 50 -cfl 0.9 -fe 0 -ode 1 -ft 6. -r 5 -vn LowOrder 

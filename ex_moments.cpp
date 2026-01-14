@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 
     if(important)
     {
-        OutputDirectory = "output/Important";
+        OutputDirectory = "output/revision";
     }
 
 
@@ -194,7 +194,7 @@ int main(int argc, char *argv[])
 
     ParGridFunction u(&vfes, ublock);
     u = sys->u0;
-    //ParGridFunction res_gf = u;
+    ParGridFunction res_gf = u;
     //Du = 0.0;
     //ParGridFunction res_gf = Du;
     ParGridFunction main(&fes, ublock.GetBlock(0));
@@ -278,14 +278,14 @@ int main(int argc, char *argv[])
 
         pd = new mfem::ParaViewDataCollection(para_loc, &pmesh);
         pd->SetPrefixPath(OutputDirectory);
-        pd->SetHighOrderOutput(true);
-        pd->SetLevelsOfDetail(order);
+        //pd->SetHighOrderOutput(true);
+        //pd->SetLevelsOfDetail(order);
         pd->RegisterField("psi0", &main);
-        pd->RegisterField("psi1", &psi1);
+        //pd->RegisterField("psi1", &psi1);
         pd->RegisterField("f", &f);
-        pd->RegisterField("sigma_a", &sigma_a);
+        //pd->RegisterField("sigma_a", &sigma_a);
         //pd->RegisterField("inflow", &met->inflow);
-        //*
+        /*
         if(sys->solutionKnown)
         {
             pd->RegisterField("analytical solution", &met->inflow);
@@ -358,7 +358,7 @@ int main(int argc, char *argv[])
         
         if(sys->steadyState)
         {
-            residual = met->ComputeSteadyStateResidual_quick(met->uOld, u, dt);
+            residual = met->ComputeSteadyStateResidual(u, res_gf);
             if(Mpi::Root() && !iter_output.std::string::empty() )
             {
                 double placeholder = residual_history->Append(residual);
