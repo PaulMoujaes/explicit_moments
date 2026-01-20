@@ -192,7 +192,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
         {
             problemName = "M1-Directed-Lattice-Problem";
             solutionKnown = false;
-            steadyState = false;
+            steadyState = true;
             timedependentSource = false;
             timedependentbdr = false;
             bdrcon_needed = false;

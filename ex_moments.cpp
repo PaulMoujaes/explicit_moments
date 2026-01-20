@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
         pd->RegisterField("psi0", &main);
         //pd->RegisterField("psi1", &psi1);
         pd->RegisterField("f", &f);
-        //pd->RegisterField("sigma_a", &sigma_a);
+        pd->RegisterField("sigma_a", &sigma_a);
         //pd->RegisterField("inflow", &met->inflow);
         /*
         if(sys->solutionKnown)

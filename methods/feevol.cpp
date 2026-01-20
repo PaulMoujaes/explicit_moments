@@ -242,8 +242,10 @@ double FE_Evolution::ComputeSteadyStateResidual_quick(const ParGridFunction &uOl
     return steadyStateResidual;
 }
 
+
 void FE_Evolution::Set_dt_Update_MLsigma(const double dt_)
 {
+    //*
     dt = dt_;
 
     for(int i = 0; i < nDofs; i++)
@@ -257,7 +259,7 @@ void FE_Evolution::Set_dt_Update_MLsigma(const double dt_)
             ML_over_MLpdtMLs_m1(i + n * nDofs, i + n * nDofs) = -1.0 + lumpedMassMatrix(i) / (lumpedMassMatrix(i) + dt * Mlumped_sigma_aps(i));
         }
     }
-
+    //*/
 }
 
 double FE_Evolution::Compute_dt(const Vector &x, const double CFL) const
