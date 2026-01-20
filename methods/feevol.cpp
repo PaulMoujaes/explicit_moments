@@ -242,10 +242,22 @@ double FE_Evolution::ComputeSteadyStateResidual_quick(const ParGridFunction &uOl
     return steadyStateResidual;
 }
 
+void FE_Evolution::Strang_halfstep(const double dt_, ParGridFunction &u) const
+{
+    double tau = 0.5 * dt_;
+    for(int i = 0; i < nDofs; i++)
+    {
+        u(i) *= exp(-Mlumped_sigma_a(i) / lumpedMassMatrix(i) * tau);
+        for( int n = 1; n < numVar; n++)
+        {
+            u(i + n * nDofs) *= exp(-Mlumped_sigma_aps(i) / lumpedMassMatrix(i) * tau);
+        }
+    }
+}
 
 void FE_Evolution::Set_dt_Update_MLsigma(const double dt_)
 {
-    //*
+    /*
     dt = dt_;
 
     for(int i = 0; i < nDofs; i++)

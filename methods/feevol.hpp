@@ -83,6 +83,7 @@ class FE_Evolution : public TimeDependentOperator
         virtual void SyncVector_Max(Vector &x) const;
         virtual void VSyncVector(Vector &x) const;
         virtual double ComputeSteadyStateResidual_quick(const ParGridFunction &uOld, const ParGridFunction &u, const double dt) const;
+        void Strang_halfstep(const double dt_, ParGridFunction &u) const;
         /*
         virtual double ComputeSteadyStateResidual(const Vector &x, ParGridFunction &res_gf) const;
         virtual void ComputeSteadyStateResidual_gf(const Vector &x, ParGridFunction &res_gf) const = 0;

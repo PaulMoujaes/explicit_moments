@@ -171,8 +171,9 @@ void MCL::Mult(const Vector &x, Vector &y) const
     
     VSyncVector(aux1);
     vfes->GetProlongationMatrix()->AddMult(rhs_td, aux1);
-    One_over_MLpdtMLs.Mult(aux1, y);
-    ML_over_MLpdtMLs_m1.AddMult(x, y, 1.0 / dt);
+    //One_over_MLpdtMLs.Mult(aux1, y);
+    //ML_over_MLpdtMLs_m1.AddMult(x, y, 1.0 / dt);
+    ML_inv.Mult(aux1, y);
 }
 
 

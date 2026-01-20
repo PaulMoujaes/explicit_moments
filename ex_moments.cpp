@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
     if(addaptive_ts)
     {
         dt = met->Compute_dt(u, CFL);
-        met->Set_dt_Update_MLsigma(dt);
+        //met->Set_dt_Update_MLsigma(dt);
     }
 
     double dt_real;
@@ -345,16 +345,21 @@ int main(int argc, char *argv[])
         if(!sys->steadyState)
         {
             dt_real = min(dt, t_final - t);
+            /*
             if(abs(dt - dt_real) > 1e-15)
             {
                 met->Set_dt_Update_MLsigma(dt_real);
             }
+            //*/
         }
         else
         {
             dt_real = dt;
         }
+
+        met->Strang_halfstep(dt_real, u);
         odesolver->Step(u, t, dt_real);
+        met->Strang_halfstep(dt_real, u);
         
         if(sys->steadyState)
         {

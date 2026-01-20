@@ -721,3 +721,12 @@
 22323.3 seconds needed for the run: ex_moments -b 2 -m ./meshes/inline-4quad_10.mesh -vis 100 -cfl 0.5 -fe 1 -ode 2 -ft 3.0 -r 10 -vn RefSol -ps 100000 -i 
 21577.7 seconds needed for the run: ex_moments -b 1 -m ./meshes/inline-4quad_20.mesh -vis 100 -cfl 0.5 -fe 1 -ode 2 -ft 6.0 -r 10 -vn RefSol09 -ps 100000 -i 
 0.082277 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 50 -cfl 0.9 -fe 0 -ode 1 -ft 6. -r 5 -vn LowOrder 
+30.0474 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 5 -vn Strangtest -ps 1000 
+1928.84 seconds needed for the run: ex_moments -b 3 -m ./meshes/inline-4quad_7.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 3.2 -r 7 -vn Strangtest -ps 1000 
+1.06584 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 7 -vn Strangtest 
+0.300987 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 6 -vn Strangtest 
+0.2488 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 6 -vn Strangtest 
+0.907311 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 7 -vn Strangtest 
+3.36838 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 8 -vn Strangtest 
+13.4119 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 9 -vn Strangtest 
+54.7387 seconds needed for the run: ex_moments -b 11 -m ./meshes/left-inlet-right-outlet.mesh -vis 10000 -cfl 0.5 -fe 1 -ode 2 -ft 1.0 -r 10 -vn Strangtest 
