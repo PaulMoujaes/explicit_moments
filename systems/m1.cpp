@@ -165,7 +165,7 @@ M1::M1(ParFiniteElementSpace *vfes_, BlockVector &ublock, SystemConfiguration &c
 
         case 11:
         {
-            alpha = 1.0 - 1e-14;
+            alpha = 1.0 - 1e-8;
             problemName = "M1-ManifacturedSol";
             solutionKnown = true;
             steadyState = false;

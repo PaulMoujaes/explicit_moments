@@ -257,7 +257,7 @@ void FE_Evolution::Strang_halfstep(const double dt_, ParGridFunction &u) const
 
 void FE_Evolution::Set_dt_Update_MLsigma(const double dt_)
 {
-    /*
+    //*
     dt = dt_;
 
     for(int i = 0; i < nDofs; i++)
